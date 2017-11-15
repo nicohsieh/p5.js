@@ -41,7 +41,7 @@ p5.Color = function(pInst, vals) {
   ) {
     throw new Error(this.mode + ' is an invalid colorMode.');
   } else {
-    this._array = p5.Color._parseInputs.apply(this, vals);
+    this._array = p5.Color.prototype._parseInputs.apply(this, vals);
   }
 
   // Expose closest screen color.

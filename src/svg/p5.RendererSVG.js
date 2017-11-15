@@ -25,12 +25,23 @@ p5.RendererSVG = function(pInst, isMainCanvas, attr) {
 
   p5.Renderer.call(this, elt, pInst, constants.SVG, isMainCanvas);
 
-  this._initContext();
+  //this.fill(255, 255, 255, 255);
 
-  this.fill(255, 255, 255, 255);
+  this.name = 'p5.RendererSVG'; // for friendly debugger system
+
+  return this;
+};
+
+p5.RendererSVG.prototype = Object.create(p5.Renderer.prototype);
+
+p5.RendererSVG.prototype._applyDefaults = function() {
   this._pointSize = 1;
   this._strokeWeight = 1;
-  this._strokeColor = pInst.color(0);
+  this._strokeColor = this._pInst.color(constants._DEFAULT_STROKE);
+  this._fillColor = this._pInst.color(constants._DEFAULT_FILL);
+  this._blendMode = null;
+  this._alignmentBaseline = 'top';
+  this._textAnchor = null;
 
   this.strokeCap(constants.ROUND);
   this.strokeJoin(constants.MITER);
@@ -46,19 +57,15 @@ p5.RendererSVG.prototype = Object.create(p5.Renderer.prototype);
 // Setting
 //////////////////////////////////////////////
 
-p5.RendererSVG.prototype._initContext = function() {};
-
-//This is helper function to reset the context anytime the attributes
-//are changed with setAttributes()
-
-p5.RendererSVG.prototype._resetContext = function(attr, options, callback) {};
-
 p5.RendererSVG.prototype._addElement = function(tagName, attributes) {
   var elt = document.createElementNS(svgNS, tagName);
   for (var name in attributes) {
     elt.setAttributeNS(null, name, attributes[name]);
   }
-  this.elt.appendChild(elt);
+  if (this._blendMode && tagName !== 'g') {
+    elt.style.mixBlendMode = this._blendMode;
+  }
+  this.container.appendChild(elt);
   return elt;
 };
 
@@ -108,15 +115,17 @@ p5.RendererSVG.prototype._getStroke = function() {
 };
 
 p5.RendererSVG.prototype._applyStroke = function(elt) {
-  elt.setAttributeNS(null, 'stroke', this._strokeColor.toString());
-  if (this._strokeWeight !== 1) {
-    elt.setAttributeNS(null, 'stroke-width', this._strokeWeight);
-  }
-  if (this._strokeJoin) {
-    elt.setAttributeNS(null, 'stroke-linejoin', this._strokeJoin);
-  }
-  if (this._strokeCap) {
-    elt.setAttributeNS(null, 'stroke-linecap', this._strokeCap);
+  if (this._doStroke) {
+    elt.setAttributeNS(null, 'stroke', this._strokeColor.toString());
+    if (this._strokeWeight !== 1) {
+      elt.setAttributeNS(null, 'stroke-width', this._strokeWeight);
+    }
+    if (this._strokeJoin) {
+      elt.setAttributeNS(null, 'stroke-linejoin', this._strokeJoin);
+    }
+    if (this._strokeCap) {
+      elt.setAttributeNS(null, 'stroke-linecap', this._strokeCap);
+    }
   }
 };
 
@@ -401,11 +410,10 @@ p5.RendererSVG.prototype.endShape = function(
     return this;
   }
   var closeShape = mode === constants.CLOSE;
-  var v;
   if (closeShape && !isContour) {
     vertices.push(vertices[0]);
   }
-  var i; //, j;
+  var i, v;
   var numVerts = vertices.length;
   var path;
 
@@ -659,6 +667,106 @@ p5.RendererSVG.prototype.strokeJoin = function(join) {
 p5.RendererSVG.prototype.resetMatrix = function() {
   //this.uMVMatrix = p5.Matrix.identity();
   return this;
+};
+
+p5.RendererSVG.prototype.textWidth = function(s) {
+  if (this._isOpenType()) {
+    return this._textFont._textWidth(s, this._textSize);
+  }
+  var elt = this._addElement('text', {
+    'font-size': this._textSize,
+    style: 'font-family: ' + this._textFont
+  });
+  elt.textContent = s;
+  this._applyStroke(elt);
+  var width = elt.clientWidth;
+  elt.parentNode.removeChild(elt);
+  return width;
+};
+
+p5.RendererSVG.prototype._textBaseline = function(baseline) {
+  switch (baseline) {
+    case constants.TOP:
+      this._alignmentBaseline = 'hanging';
+      break;
+    case constants.CENTER:
+      this._alignmentBaseline = 'middle';
+      break;
+    case constants.BOTTOM:
+    case constants.BASELINE:
+      this._alignmentBaseline = null;
+      break;
+  }
+};
+
+p5.RendererSVG.prototype._textAlign = function() {
+  this._textBaseline(this._vAlign);
+  switch (this._hAlign) {
+    case constants.LEFT:
+      this._textAnchor = null;
+      break;
+    case constants.CENTER:
+      this._textAnchor = 'middle';
+      break;
+    case constants.RIGHT:
+      this._textAnchor = 'end';
+      break;
+  }
+};
+
+p5.RendererSVG.prototype._renderText = function(p, line, x, y, maxY) {
+  if (y >= maxY) {
+    return; // don't render lines beyond our maxY position
+  }
+
+  p.push(); // fix to #803
+
+  if (!this._isOpenType()) {
+    // a system/browser font
+
+    var elt = this._addElement('text', {
+      x: x,
+      y: y,
+      'font-size': this._textSize,
+      style: 'font-family: ' + this._textFont
+    });
+
+    if (this._alignmentBaseline) {
+      elt.setAttributeNS(null, 'dominant-baseline', this._alignmentBaseline);
+    }
+    if (this._textAnchor) {
+      elt.setAttributeNS(null, 'text-anchor', this._textAnchor);
+    }
+
+    switch (this._textStyle) {
+      case constants.BOLD:
+        elt.style.fontWeight = 'bold';
+        break;
+      case constants.ITALIC:
+        elt.style.fontStyle = 'italic';
+        break;
+    }
+
+    if (this._strokeSet) {
+      this._applyStroke(elt);
+    }
+    if (this._doFill) {
+      var fillColor = this._fillSet
+        ? this._fillColor
+        : constants._DEFAULT_TEXT_FILL;
+      elt.setAttributeNS(null, 'fill', fillColor.toString());
+    }
+
+    elt.textContent = line;
+  } else {
+    // an opentype font, let it handle the rendering
+
+    this._textFont._renderPath(line, x, y, { renderer: this });
+  }
+
+  p.pop();
+
+  return p;
 };
 
 module.exports = p5.RendererSVG;

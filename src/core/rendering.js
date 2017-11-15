@@ -51,7 +51,7 @@ require('../webgl/p5.RendererGL');
 p5.prototype.createCanvas = function(w, h, renderer) {
   p5._validateParameters('createCanvas', arguments);
 
-  renderer = renderer || constants.SVG;
+  renderer = renderer || constants.P2D;
 
   if (this._renderer) {
     this._removeElement(this._renderer);

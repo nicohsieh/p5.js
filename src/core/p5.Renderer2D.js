@@ -1251,6 +1251,10 @@ p5.Renderer2D.prototype.text = function(str, x, y, maxWidth, maxHeight) {
   return p;
 };
 
+p5.Renderer2D.prototype._textBaseline = function(baseline) {
+  this.drawingContext.textBaseline = constants.TOP;
+};
+
 p5.Renderer2D.prototype._renderText = function(p, line, x, y, maxY) {
   if (y >= maxY) {
     return; // don't render lines beyond our maxY position
@@ -1342,18 +1346,11 @@ p5.Renderer2D.prototype._textAlign = function() {
 };
 
 p5.Renderer2D.prototype._applyTextProperties = function() {
-  var font,
-    p = this._pInst;
+  p5.Renderer.prototype._applyTextProperties.apply(this, arguments);
 
-  this._setProperty('_textAscent', null);
-  this._setProperty('_textDescent', null);
-
-  font = this._textFont;
-
-  if (this._isOpenType()) {
-    font = this._textFont.font.familyName;
-    this._setProperty('_textStyle', this._textFont.font.styleName);
-  }
+  var font = this._isOpenType()
+    ? this._textFont.font.familyName
+    : this._textFont;
 
   this.drawingContext.font =
     (this._textStyle || 'normal') +
@@ -1362,7 +1359,7 @@ p5.Renderer2D.prototype._applyTextProperties = function() {
     'px ' +
     (font || 'sans-serif');
 
-  return p;
+  return this._pInst;
 };
 
 //////////////////////////////////////////////
