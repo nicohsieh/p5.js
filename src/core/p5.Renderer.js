@@ -60,6 +60,9 @@ p5.Renderer = function(elt, pInst, type, isMainCanvas) {
   this._curveTightness = 0;
   this._imageMode = constants.CORNER;
 
+  this._hAlign = constants.LEFT;
+  this._vAlign = constants.TOP;
+
   this._tint = null;
   this._doStroke = true;
   this._doFill = true;
@@ -270,5 +273,41 @@ function calculateOffset(object) {
   }
   return [currentLeft, currentTop];
 }
+
+//////////////////////////////////////////////
+// SHAPE | Curves
+//////////////////////////////////////////////
+p5.Renderer.prototype.bezier = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+  this._pInst.beginShape();
+  this._pInst.vertex(x1, y1);
+  this._pInst.bezierVertex(x2, y2, x3, y3, x4, y4);
+  this._pInst.endShape();
+  return this;
+};
+
+p5.Renderer.prototype.curve = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+  this._pInst.beginShape();
+  this._pInst.curveVertex(x1, y1);
+  this._pInst.curveVertex(x2, y2);
+  this._pInst.curveVertex(x3, y3);
+  this._pInst.curveVertex(x4, y4);
+  this._pInst.endShape();
+  return this;
+};
+
+p5.Renderer.prototype.textAlign = function(h, v) {
+  if (arguments.length) {
+    if (this._hAlign !== h || this._vAlign === v) {
+      this._hAlign = h;
+      this._vAlign = v;
+      this._textAlign();
+    }
+  } else {
+    return {
+      horizontal: this._hAlign,
+      vertical: this._vAlign
+    };
+  }
+};
 
 module.exports = p5.Renderer;

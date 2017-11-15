@@ -592,15 +592,7 @@ p5.Renderer2D.prototype.quad = function(x1, y1, x2, y2, x3, y3, x4, y4) {
   return this;
 };
 
-p5.Renderer2D.prototype.rect = function(args) {
-  var x = args[0],
-    y = args[1],
-    w = args[2],
-    h = args[3],
-    tl = args[4],
-    tr = args[5],
-    br = args[6],
-    bl = args[7];
+p5.Renderer2D.prototype.rect = function(x, y, w, h, tl, tr, br, bl) {
   var ctx = this.drawingContext;
   var doFill = this._doFill,
     doStroke = this._doStroke;
@@ -1200,11 +1192,11 @@ p5.Renderer2D.prototype.text = function(str, x, y, maxWidth, maxHeight) {
     }
 
     if (typeof maxHeight !== 'undefined') {
-      switch (this.drawingContext.textBaseline) {
+      switch (this._vAlign) {
         case constants.BOTTOM:
           y += maxHeight - totalHeight;
           break;
-        case constants._CTX_MIDDLE: // CENTER?
+        case constants.CENTER: // CENTER?
           y += (maxHeight - totalHeight) / 2;
           break;
         case constants.BASELINE:
@@ -1336,6 +1328,16 @@ p5.Renderer2D.prototype.textAlign = function(h, v) {
       horizontal: this.drawingContext.textAlign,
       vertical: valign
     };
+  }
+};
+
+p5.Renderer2D.prototype._textAlign = function() {
+  this.drawingContext.textAlign = this._hAlign;
+
+  if (this._vAlign === constants.CENTER) {
+    this.drawingContext.textBaseline = constants._CTX_MIDDLE;
+  } else {
+    this.drawingContext.textBaseline = this._vAlign;
   }
 };
 

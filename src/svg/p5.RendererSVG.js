@@ -2,6 +2,7 @@
 
 var p5 = require('../core/core');
 var constants = require('../core/constants');
+var polarGeometry = require('../math/polargeometry');
 require('../core/p5.Renderer');
 //var fs = require('fs');
 
@@ -18,18 +19,21 @@ var svgNS = 'http://www.w3.org/2000/svg';
  */
 p5.RendererSVG = function(pInst, isMainCanvas, attr) {
   var elt = document.createElementNS(svgNS, 'svg');
+  elt.setAttributeNS(null, 'fill', 'none');
+  elt.setAttributeNS(null, 'stroke-linecap', 'round');
   //elt.xmlns = svgNS;
 
   p5.Renderer.call(this, elt, pInst, constants.SVG, isMainCanvas);
 
   this._initContext();
 
-  // note: must call fill() and stroke () AFTER
-  // default shader has been set.
   this.fill(255, 255, 255, 255);
   this._pointSize = 1;
   this._strokeWeight = 1;
   this._strokeColor = pInst.color(0);
+
+  this.strokeCap(constants.ROUND);
+  this.strokeJoin(constants.MITER);
 
   this.name = 'p5.RendererSVG'; // for friendly debugger system
 
@@ -60,10 +64,13 @@ p5.RendererSVG.prototype._addElement = function(tagName, attributes) {
 
 p5.RendererSVG.prototype.background = function() {
   var color = this._pInst.color.apply(this._pInst, arguments);
-
-  this.elt.innerHTML = '';
-
   this.elt.style.backgroundColor = color.toString();
+  this.elt.innerHTML = '';
+};
+
+p5.RendererSVG.prototype.clear = function() {
+  this.elt.style.backgroundColor = '';
+  this.elt.innerHTML = '';
 };
 
 p5.RendererSVG.prototype.fill = function(v1, v2, v3, a) {
@@ -80,21 +87,73 @@ p5.RendererSVG.prototype.strokeWeight = function(w) {
   this._strokeWeight = w;
 };
 
+p5.RendererSVG.prototype._getFill = function() {
+  if (!this._doFill) {
+    return null;
+  }
+  if (!this._fillColor) {
+    return constants._DEFAULT_FILL;
+  }
+  return this._fillColor.toString();
+};
+
+p5.RendererSVG.prototype._getStroke = function() {
+  if (!this._doStroke) {
+    return null;
+  }
+  if (!this._strokeColor) {
+    return constants._DEFAULT_STROKE;
+  }
+  return this._strokeColor.toString();
+};
+
+p5.RendererSVG.prototype._applyStroke = function(elt) {
+  elt.setAttributeNS(null, 'stroke', this._strokeColor.toString());
+  if (this._strokeWeight !== 1) {
+    elt.setAttributeNS(null, 'stroke-width', this._strokeWeight);
+  }
+  if (this._strokeJoin) {
+    elt.setAttributeNS(null, 'stroke-linejoin', this._strokeJoin);
+  }
+  if (this._strokeCap) {
+    elt.setAttributeNS(null, 'stroke-linecap', this._strokeCap);
+  }
+};
+
 p5.RendererSVG.prototype.line = function(x1, y1, x2, y2) {
   if (this._doStroke) {
-    this._addElement('line', {
+    var elt = this._addElement('line', {
       x1: x1,
       y1: y1,
       x2: x2,
-      y2: y2,
-      'stroke-width': this._strokeWeight,
-      stroke: this._strokeColor.toString()
+      y2: y2
+    });
+    this._applyStroke(elt);
+  }
+};
+
+p5.RendererSVG.prototype.point = function(x, y) {
+  var sw = this._strokeWeight;
+  if (sw > 1) {
+    this._addElement('ellipse', {
+      cx: x + 0.5,
+      cy: y + 0.5,
+      r: sw / 2,
+      fill: this._strokeColor.toString()
+    });
+  } else {
+    this._addElement('rect', {
+      x: x,
+      y: y,
+      width: 1,
+      height: 1,
+      fill: this._strokeColor.toString()
     });
   }
 };
 
 p5.RendererSVG.prototype.ellipse = function(cx, cy, rx, ry) {
-  if (this._doStroke || this._fillColor) {
+  if (this._doStroke || this._doFill) {
     var elt = this._addElement('ellipse', {
       cx: cx + rx / 2,
       cy: cy + ry / 2,
@@ -102,18 +161,73 @@ p5.RendererSVG.prototype.ellipse = function(cx, cy, rx, ry) {
       ry: ry / 2
     });
 
-    if (this._doStroke) {
-      elt.setAttributeNS(null, 'stroke-weight', this._strokeWeight);
-      elt.setAttributeNS(null, 'stroke', this._strokeColor.toString());
+    this._applyStroke(elt);
+    if (this._doFill) {
+      elt.setAttributeNS(null, 'fill', this._fillColor.toString());
     }
-    if (this._fillColor) {
+  }
+};
+
+p5.RendererSVG.prototype.arc = function(x, y, w, h, start, stop, mode) {
+  if (this._doStroke || this._doFill) {
+    var pInst = this._pInst;
+    var x1 = x + w * pInst.cos(start) / 2;
+    var y1 = y + h * pInst.sin(start) / 2;
+    var x2 = x + w * pInst.cos(stop) / 2;
+    var y2 = y + h * pInst.sin(stop) / 2;
+
+    if (this._pInst._angleMode === constants.RADIANS) {
+      start = polarGeometry.radiansToDegrees(start);
+      stop = polarGeometry.radiansToDegrees(stop);
+    }
+
+    var sweep = (stop - start) % 360;
+    if (sweep < 0) {
+      sweep = 360 + sweep;
+    }
+
+    //var da = start + stop + 360 * 10;
+
+    var path =
+      'M ' +
+      x1 +
+      ',' +
+      y1 +
+      ' A ' +
+      w / 2 +
+      ',' +
+      h / 2 +
+      ' ' +
+      ' 0 ' +
+      (sweep > 180 ? 1 : 0) +
+      ' 1 ' +
+      x2 +
+      ',' +
+      y2;
+
+    switch (mode) {
+      default:
+      case constants.OPEN:
+        break;
+      case constants.CHORD:
+        path += ' Z';
+        break;
+      case constants.PIE:
+        path += ' L ' + x + ',' + y + ' Z';
+        break;
+    }
+
+    var elt = this._addElement('path', { d: path });
+
+    this._applyStroke(elt);
+    if (this._doFill) {
       elt.setAttributeNS(null, 'fill', this._fillColor.toString());
     }
   }
 };
 
 p5.RendererSVG.prototype.rect = function(x, y, w, h, tl, tr, br, bl) {
-  if (this._doStroke || this._fillColor) {
+  if (this._doStroke || this._doFill) {
     var elt;
 
     if (tl || tr || bl || br) {
@@ -192,14 +306,275 @@ p5.RendererSVG.prototype.rect = function(x, y, w, h, tl, tr, br, bl) {
       });
     }
 
-    if (this._doStroke) {
-      elt.setAttributeNS(null, 'stroke-weight', this._strokeWeight);
-      elt.setAttributeNS(null, 'stroke', this._strokeColor.toString());
-    }
-    if (this._fillColor) {
+    this._applyStroke(elt);
+    if (this._doFill) {
       elt.setAttributeNS(null, 'fill', this._fillColor.toString());
     }
   }
+};
+
+p5.RendererSVG.prototype.quad = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+  if (this._doStroke || this._doFill) {
+    var elt = this._addElement('path', {
+      d:
+        'M ' +
+        x1 +
+        ',' +
+        y1 +
+        ' L ' +
+        x2 +
+        ',' +
+        y2 +
+        ' L ' +
+        x3 +
+        ',' +
+        y3 +
+        ' L ' +
+        x4 +
+        ',' +
+        y4 +
+        ' L ' +
+        x1 +
+        ',' +
+        y1 +
+        ' Z'
+    });
+
+    this._applyStroke(elt);
+    if (this._doFill) {
+      elt.setAttributeNS(null, 'fill', this._fillColor.toString());
+    }
+  }
+};
+
+p5.RendererSVG.prototype.triangle = function(x1, y1, x2, y2, x3, y3) {
+  if (this._doStroke || this._doFill) {
+    var elt = this._addElement('path', {
+      d:
+        'M ' +
+        x1 +
+        ',' +
+        y1 +
+        ' L ' +
+        x2 +
+        ',' +
+        y2 +
+        ' L ' +
+        x3 +
+        ',' +
+        y3 +
+        ' L ' +
+        x1 +
+        ',' +
+        y1 +
+        ' Z'
+    });
+
+    this._applyStroke(elt);
+    if (this._doFill) {
+      elt.setAttributeNS(null, 'fill', this._fillColor.toString());
+    }
+  }
+};
+
+function xy(v) {
+  return v[0] + ',' + v[1];
+}
+
+function xy2(x, y) {
+  return x + ',' + y;
+}
+
+p5.RendererSVG.prototype.endShape = function(
+  mode,
+  vertices,
+  isCurve,
+  isBezier,
+  isQuadratic,
+  isContour,
+  shapeKind
+) {
+  if (vertices.length === 0) {
+    return this;
+  }
+  if (!this._doStroke && !this._doFill) {
+    return this;
+  }
+  var closeShape = mode === constants.CLOSE;
+  var v;
+  if (closeShape && !isContour) {
+    vertices.push(vertices[0]);
+  }
+  var i; //, j;
+  var numVerts = vertices.length;
+  var path;
+
+  switch (shapeKind) {
+    case constants.POLYGON:
+    default:
+      if (isCurve && numVerts > 3) {
+        var s = 1 - this._curveTightness;
+
+        path = 'M ' + xy(vertices[1]);
+        for (i = 1; i + 2 < numVerts; i++) {
+          v = vertices[i];
+          var nv = vertices[i + 1];
+          var b1 = [
+            v[0] + (s * nv[0] - s * vertices[i - 1][0]) / 6,
+            v[1] + (s * nv[1] - s * vertices[i - 1][1]) / 6
+          ];
+          var b2 = [
+            nv[0] + (s * v[0] - s * vertices[i + 2][0]) / 6,
+            nv[1] + (s * v[1] - s * vertices[i + 2][1]) / 6
+          ];
+          path += ' C ' + xy(b1) + ' ' + xy(b2) + ' ' + xy(nv);
+        }
+        if (closeShape) {
+          path += ' L ' + xy(vertices[i + 1]);
+        }
+      } else if (isBezier) {
+        path = '';
+        for (i = 0; i < numVerts; i++) {
+          v = vertices[i];
+          if (v.isVert) {
+            path += (v.moveTo || !i ? ' M ' : ' L ') + xy(v);
+          } else {
+            path +=
+              ' C ' +
+              xy2(v[0], v[1]) +
+              ' ' +
+              xy2(v[2], v[3]) +
+              ' ' +
+              xy2(v[4], v[5]);
+          }
+        }
+      } else if (isQuadratic) {
+        path = '';
+        for (i = 0; i < numVerts; i++) {
+          v = vertices[i];
+          if (v.isVert) {
+            path += (v.moveTo || !i ? ' M ' : ' L ') + xy(v);
+          } else {
+            path += ' Q ' + xy2(v[0], v[1]) + ' ' + xy2(v[2], v[3]);
+          }
+        }
+      } else {
+        path = 'M ' + xy(vertices[0]);
+        for (i = 1; i < numVerts; i++) {
+          v = vertices[i];
+          if (v.isVert) {
+            path += (v.moveTo || !i ? ' M ' : ' L ') + xy(v);
+          }
+        }
+      }
+      break;
+
+    case constants.POINTS:
+      for (i = 0; i < numVerts; i++) {
+        v = vertices[i];
+        if (this._doStroke) {
+          this._pInst.stroke(v[6]);
+        }
+        this._pInst.point(v[0], v[1]);
+      }
+      break;
+
+    case constants.LINES:
+      for (i = 0; i + 1 < numVerts; i += 2) {
+        v = vertices[i];
+        if (this._doStroke) {
+          this._pInst.stroke(vertices[i + 1][6]);
+        }
+        this._pInst.line(v[0], v[1], vertices[i + 1][0], vertices[i + 1][1]);
+      }
+      break;
+
+    case constants.TRIANGLES:
+      for (i = 0; i < numVerts - 2; i += 3) {
+        this.triangle(
+          vertices[i + 0][0],
+          vertices[i + 0][1],
+          vertices[i + 1][0],
+          vertices[i + 1][1],
+          vertices[i + 2][0],
+          vertices[i + 2][1]
+        );
+      }
+      break;
+
+    case constants.TRIANGLE_STRIP:
+      for (i = 0; i < numVerts - 2; i += 1) {
+        this.triangle(
+          vertices[i + 0][0],
+          vertices[i + 0][1],
+          vertices[i + 1][0],
+          vertices[i + 1][1],
+          vertices[i + 2][0],
+          vertices[i + 2][1]
+        );
+      }
+      break;
+
+    case constants.TRIANGLE_FAN:
+      for (i = 1; i < numVerts - 1; i += 1) {
+        this.triangle(
+          vertices[0][0],
+          vertices[0][1],
+          vertices[i + 0][0],
+          vertices[i + 0][1],
+          vertices[i + 1][0],
+          vertices[i + 1][1]
+        );
+      }
+      break;
+
+    case constants.QUADS:
+      for (i = 0; i < numVerts - 3; i += 4) {
+        this.quad(
+          vertices[i + 0][0],
+          vertices[i + 0][1],
+          vertices[i + 1][0],
+          vertices[i + 1][1],
+          vertices[i + 2][0],
+          vertices[i + 2][1],
+          vertices[i + 3][0],
+          vertices[i + 3][1]
+        );
+      }
+      break;
+
+    case constants.QUAD_STRIP:
+      for (i = 0; i < numVerts - 3; i += 2) {
+        this.quad(
+          vertices[i + 0][0],
+          vertices[i + 0][1],
+          vertices[i + 1][0],
+          vertices[i + 1][1],
+          vertices[i + 3][0],
+          vertices[i + 3][1],
+          vertices[i + 2][0],
+          vertices[i + 2][1]
+        );
+      }
+      break;
+  }
+
+  if (path) {
+    var elt = this._addElement('path', { d: path });
+    this._applyStroke(elt);
+    if (this._doFill) {
+      elt.setAttributeNS(null, 'fill', this._fillColor.toString());
+    }
+  }
+
+  isCurve = false;
+  isBezier = false;
+  isQuadratic = false;
+  isContour = false;
+  if (closeShape) {
+    vertices.pop();
+  }
+  return this;
 };
 
 /*
@@ -234,6 +609,52 @@ p5.RendererSVG.prototype.pop = function() {
 };
 
 */
+
+//////////////////////////////////////////////
+// SHAPE | Attributes
+//////////////////////////////////////////////
+
+p5.RendererSVG.prototype.noSmooth = function() {
+  this.elt.setAttributeNS(null, 'shape-rendering', 'optimizeSpeed');
+  return this;
+};
+
+p5.RendererSVG.prototype.smooth = function() {
+  this.elt.setAttributeNS(null, 'shape-rendering', 'geometricPrecision');
+  return this;
+};
+
+p5.RendererSVG.prototype.strokeCap = function(cap) {
+  switch (cap) {
+    case constants.ROUND:
+    default:
+      this._strokeCap = null;
+      break;
+    case constants.SQUARE:
+      this._strokeCap = 'butt';
+      break;
+    case constants.PROJECT:
+      this._strokeCap = 'square';
+      break;
+  }
+  return this;
+};
+
+p5.RendererSVG.prototype.strokeJoin = function(join) {
+  switch (join) {
+    case constants.MITER:
+    default:
+      this._strokeJoin = null;
+      break;
+    case constants.BEVEL:
+      this._strokeJoin = 'bevel';
+      break;
+    case constants.ROUND:
+      this._strokeJoin = 'round';
+      break;
+  }
+  return this;
+};
 
 p5.RendererSVG.prototype.resetMatrix = function() {
   //this.uMVMatrix = p5.Matrix.identity();
