@@ -7,7 +7,6 @@
 'use strict';
 
 var p5 = require('./core');
-var constants = require('./constants');
 
 /**
  * Thin wrapper around a renderer, to be used for creating a
@@ -47,35 +46,37 @@ p5.Graphics = function(w, h, renderer, pInst) {
   */
   p5.prototype._initializeInstanceVariables.apply(this);
 
+  // bind methods and props of p5 to the new object
+  for (var p in p5.prototype) {
+    if (!this[p]) {
+      if (typeof p5.prototype[p] === 'function') {
+        this[p] = p5.prototype[p].bind(this);
+      } else {
+        this[p] = p5.prototype[p];
+      }
+    }
+  }
+
   this._styles = [];
   this.width = w;
   this.height = h;
   this._pixelDensity = pInst._pixelDensity;
 
-  switch (renderer) {
-    case constants.WEBGL:
-      p5.RendererGL.call(this, pInst, false);
-      break;
-    case constants.SVG:
-      p5.RendererSVG.call(this, pInst, false);
-      break;
-    default:
-      p5.RendererSVG.call(this, pInst, false);
-      //p5.Renderer2D.call(this, pInst, false);
-      break;
-  }
-  pInst._elements.push(this);
+  var r = this._createRenderer(renderer, false);
+  p5.Element.call(this, r.elt, pInst);
 
-  this._renderer = this; // weird
+  // Init our graphics renderer
+  this._setProperty('_renderer', r);
+  pInst._elements.push(r);
 
-  this.resize(w, h);
-  this._applyDefaults();
+  r.resize(w, h);
+  r._applyDefaults();
 
   this.name = 'p5.Graphics'; // for friendly debugger system
   return this;
 };
 
-p5.Graphics.prototype = Object.create(p5.Renderer.prototype);
+p5.Graphics.prototype = Object.create(p5.Element.prototype);
 
 /**
  * @method remove
