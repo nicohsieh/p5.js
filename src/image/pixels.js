@@ -228,7 +228,6 @@ p5.prototype.blend = function() {
  * @param  {Integer} dh
  */
 p5.prototype.copy = function() {
-  p5._validateParameters('copy', arguments);
   p5.Renderer2D.prototype.copy.apply(this._renderer, arguments);
 };
 

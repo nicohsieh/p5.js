@@ -54,7 +54,6 @@ require('../core/error_helpers');
  * deep pink rect on left and grey rect on right, both 35x60.
  */
 p5.prototype.alpha = function(c) {
-  p5._validateParameters('alpha', arguments);
   return this.color(c)._getAlpha();
 };
 
@@ -84,7 +83,6 @@ p5.prototype.alpha = function(c) {
  *
  */
 p5.prototype.blue = function(c) {
-  p5._validateParameters('blue', arguments);
   return this.color(c)._getBlue();
 };
 
@@ -114,7 +112,6 @@ p5.prototype.blue = function(c) {
  *
  */
 p5.prototype.brightness = function(c) {
-  p5._validateParameters('brightness', arguments);
   return this.color(c)._getBrightness();
 };
 
@@ -308,7 +305,6 @@ p5.prototype.brightness = function(c) {
  */
 
 p5.prototype.color = function() {
-  p5._validateParameters('color', arguments);
   if (arguments[0] instanceof p5.Color) {
     return arguments[0]; // Do nothing if argument is already a color object.
   }
@@ -344,7 +340,6 @@ p5.prototype.color = function() {
  */
 
 p5.prototype.green = function(c) {
-  p5._validateParameters('green', arguments);
   return this.color(c)._getGreen();
 };
 
@@ -381,7 +376,6 @@ p5.prototype.green = function(c) {
  */
 
 p5.prototype.hue = function(c) {
-  p5._validateParameters('hue', arguments);
   return this.color(c)._getHue();
 };
 
@@ -429,7 +423,6 @@ p5.prototype.hue = function(c) {
  */
 
 p5.prototype.lerpColor = function(c1, c2, amt) {
-  p5._validateParameters('lerpColor', arguments);
   var mode = this._colorMode;
   var maxes = this._colorMaxes;
   var l0, l1, l2, l3;
@@ -508,7 +501,6 @@ p5.prototype.lerpColor = function(c1, c2, amt) {
  *
  */
 p5.prototype.lightness = function(c) {
-  p5._validateParameters('lightness', arguments);
   return this.color(c)._getLightness();
 };
 
@@ -548,7 +540,6 @@ p5.prototype.lightness = function(c) {
  * grey canvas
  */
 p5.prototype.red = function(c) {
-  p5._validateParameters('red', arguments);
   return this.color(c)._getRed();
 };
 
@@ -584,7 +575,6 @@ p5.prototype.red = function(c) {
  */
 
 p5.prototype.saturation = function(c) {
-  p5._validateParameters('saturation', arguments);
   return this.color(c)._getSaturation();
 };
 

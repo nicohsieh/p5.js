@@ -193,7 +193,6 @@ p5.prototype.resetMatrix = function() {
  *
  */
 p5.prototype.rotate = function(angle, axis) {
-  p5._validateParameters('rotate', arguments);
   this._renderer.rotate(this._toRadians(angle), axis);
   return this;
 };
@@ -222,7 +221,6 @@ p5.prototype.rotate = function(angle, axis) {
  * 3d box rotating around the x axis.
  */
 p5.prototype.rotateX = function(angle) {
-  p5._validateParameters('rotateX', arguments);
   this._assert3d('rotateX');
   this._renderer.rotateX(this._toRadians(angle));
   return this;
@@ -252,7 +250,6 @@ p5.prototype.rotateX = function(angle) {
  * 3d box rotating around the y axis.
  */
 p5.prototype.rotateY = function(angle) {
-  p5._validateParameters('rotateY', arguments);
   this._assert3d('rotateY');
   this._renderer.rotateY(this._toRadians(angle));
   return this;
@@ -282,7 +279,6 @@ p5.prototype.rotateY = function(angle) {
  * 3d box rotating around the z axis.
  */
 p5.prototype.rotateZ = function(angle) {
-  p5._validateParameters('rotateZ', arguments);
   this._assert3d('rotateZ');
   this._renderer.rotateZ(this._toRadians(angle));
   return this;
@@ -339,7 +335,6 @@ p5.prototype.rotateZ = function(angle) {
  * @chainable
  */
 p5.prototype.scale = function(x, y, z) {
-  p5._validateParameters('scale', arguments);
   // Only check for Vector argument type if Vector is available
   if (x instanceof p5.Vector) {
     var v = x;
@@ -397,7 +392,6 @@ p5.prototype.scale = function(x, y, z) {
  *
  */
 p5.prototype.shearX = function(angle) {
-  p5._validateParameters('shearX', arguments);
   this._renderer.shearX(this._toRadians(angle));
   return this;
 };
@@ -436,7 +430,6 @@ p5.prototype.shearX = function(angle) {
  *
  */
 p5.prototype.shearY = function(angle) {
-  p5._validateParameters('shearY', arguments);
   this._renderer.shearY(this._toRadians(angle));
   return this;
 };
@@ -501,7 +494,6 @@ p5.prototype.shearY = function(angle) {
  * @chainable
  */
 p5.prototype.translate = function(x, y, z) {
-  p5._validateParameters('translate', arguments);
   if (this._renderer.isP3D) {
     this._renderer.translate(x, y, z);
   } else {

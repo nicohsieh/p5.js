@@ -80,8 +80,6 @@ require('./error_helpers');
  * @chainable
  */
 p5.prototype.bezier = function() {
-  p5._validateParameters('bezier', arguments);
-
   if (this._renderer._doStroke || this._renderer._doFill) {
     this._renderer.bezier.apply(this._renderer, arguments);
   }
@@ -111,7 +109,6 @@ p5.prototype.bezier = function() {
  *
  */
 p5.prototype.bezierDetail = function(d) {
-  p5._validateParameters('bezierDetail', arguments);
   this._bezierDetail = d;
   return this;
 };
@@ -160,8 +157,6 @@ p5.prototype.bezierDetail = function(d) {
  *
  */
 p5.prototype.bezierPoint = function(a, b, c, d, t) {
-  p5._validateParameters('bezierPoint', arguments);
-
   var adjustedT = 1 - t;
   return (
     Math.pow(adjustedT, 3) * a +
@@ -237,8 +232,6 @@ p5.prototype.bezierPoint = function(a, b, c, d, t) {
  *
  */
 p5.prototype.bezierTangent = function(a, b, c, d, t) {
-  p5._validateParameters('bezierTangent', arguments);
-
   var adjustedT = 1 - t;
   return (
     3 * d * Math.pow(t, 2) -
@@ -332,8 +325,6 @@ p5.prototype.bezierTangent = function(a, b, c, d, t) {
  * @chainable
  */
 p5.prototype.curve = function() {
-  p5._validateParameters('curve', arguments);
-
   if (this._renderer._doStroke) {
     this._renderer.curve.apply(this._renderer, arguments);
   }
@@ -363,7 +354,6 @@ p5.prototype.curve = function() {
  *
  */
 p5.prototype.curveDetail = function(d) {
-  p5._validateParameters('curveDetail', arguments);
   this._curveDetail = d;
   return this;
 };
@@ -410,7 +400,6 @@ p5.prototype.curveDetail = function(d) {
  * Line shaped like right-facing arrow,points move with mouse-x and warp shape.
  */
 p5.prototype.curveTightness = function(t) {
-  p5._validateParameters('curveTightness', arguments);
   this._renderer._curveTightness = t;
 };
 
@@ -452,8 +441,6 @@ p5.prototype.curveTightness = function(t) {
  *line hooking down to right-bottom with 13 5x5 white ellipse points
  */
 p5.prototype.curvePoint = function(a, b, c, d, t) {
-  p5._validateParameters('curvePoint', arguments);
-
   var t3 = t * t * t,
     t2 = t * t,
     f1 = -0.5 * t3 + t2 - 0.5 * t,
@@ -499,8 +486,6 @@ p5.prototype.curvePoint = function(a, b, c, d, t) {
  *right curving line mid-right of canvas with 7 short lines radiating from it.
  */
 p5.prototype.curveTangent = function(a, b, c, d, t) {
-  p5._validateParameters('curveTangent', arguments);
-
   var t2 = t * t,
     f1 = -3 * t2 / 2 + 2 * t - 0.5,
     f2 = 9 * t2 / 2 - 5 * t,
