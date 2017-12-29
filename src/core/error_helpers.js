@@ -580,7 +580,6 @@ if (typeof IS_MINIFIED !== 'undefined') {
     if (p5.disableFriendlyErrors) {
       return; // skip FES
     }
-
     var func = docData.name;
     var docs = docData.docs || (docData.docs = parseParamDoc(docData));
     var errorArray = [];
