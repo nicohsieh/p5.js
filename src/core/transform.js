@@ -236,7 +236,14 @@ p5.prototype.pushMatrix = function() {
  * @alt
  * 3d box rotating around the y axis.
  */
-// see thunkRendererMethods
+p5.prototype.rotateY = function(angle) {
+  if (this._renderer.isP3D) {
+    this._renderer.rotateY(this._toRadians(angle));
+  } else {
+    throw 'not supported in p2d. Please use webgl mode';
+  }
+  return this;
+};
 
 /**
  * Rotates around Z axis. Webgl mode only.
