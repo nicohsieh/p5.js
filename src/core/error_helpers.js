@@ -171,11 +171,10 @@ if (typeof IS_MINIFIED !== 'undefined') {
     var overloads = [];
     if (docData.hasOwnProperty('overloads')) {
       for (var i = 0; i < docData.overloads.length; i++) {
-        overloads.push({ formats: queryResult.overloads[i].params });
+        overloads.push({ formats: docData.overloads[i].params });
       }
     } else {
-      // no overloads, just add the main method definition
-      overloads.push({ formats: queryResult.params || [] });
+      overloads.push({ formats: docData.params || [] });
     }
 
     // parse the parameter types for each overload
@@ -584,7 +583,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
       for (var n = 0; n < errorArray.length; n++) {
         friendlyParamError(errorArray[n], func);
       }
-    }  
+    }
   };
 
   // this is only for use by the mocha tests
