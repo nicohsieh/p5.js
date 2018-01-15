@@ -3,7 +3,6 @@ var fingers;
 
 function preload() {
   sh = loadShader('vert.glsl', 'frag.glsl');
-  img = loadImage('../../assets/UV_Grid_Sm.jpg');
 }
 
 function setup() {
@@ -11,6 +10,7 @@ function setup() {
   fingers = createVideo('../../../addons/p5.dom/fingers.mov');
   fingers.hide();
   fingers.loop();
+  img = loadImage('../../assets/UV_Grid_Sm.jpg');
   //img2 = loadImage('../assets/cat.jpg');
   shader(sh);
   sh.setUniform('uSampler', fingers);
