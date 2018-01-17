@@ -150,7 +150,6 @@ p5.RendererGL.prototype.lightFalloff = function(constant, linear, quadratic) {
  * @param  {String}        value   a color string
  * @chainable
  */
-
 /**
  * @method ambientLight
  * @param  {Number}        gray   a gray value
