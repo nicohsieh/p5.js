@@ -385,7 +385,7 @@ p5.prototype.image = function(
  * @param  {p5.Color}      color   the tint color
  */
 p5.prototype.tint = function() {
-  var c = this.color.apply(this, arguments);
+  var c = p5.prototype.color.apply(this, arguments);
   this._renderer._tint = c.levels;
 };
 

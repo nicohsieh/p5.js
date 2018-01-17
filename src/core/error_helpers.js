@@ -161,7 +161,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
   var parseParamDoc = function(docData) {
     /*
     var queryResult = arrDoc.classitems.filter(function(x) {
-      return x.name === func;
+      return x.name === func && x.class === 'p5';
     });
     var docData = queryResult[0];
     */

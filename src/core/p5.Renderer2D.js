@@ -523,13 +523,13 @@ p5.Renderer2D.prototype.ellipse = function(args) {
 };
 
 p5.Renderer2D.prototype.line = function(x1, y1, x2, y2) {
-  var ctx = this.drawingContext;
   if (!this._doStroke) {
     return this;
   } else if (this._getStroke() === styleEmpty) {
     return this;
   }
   // Translate the line by (0.5, 0.5) to draw it crisp
+  var ctx = this.drawingContext;
   if (ctx.lineWidth % 2 === 1) {
     ctx.translate(0.5, 0.5);
   }
@@ -544,12 +544,12 @@ p5.Renderer2D.prototype.line = function(x1, y1, x2, y2) {
 };
 
 p5.Renderer2D.prototype.point = function(x, y) {
-  var ctx = this.drawingContext;
   if (!this._doStroke) {
     return this;
   } else if (this._getStroke() === styleEmpty) {
     return this;
   }
+  var ctx = this.drawingContext;
   var s = this._getStroke();
   var f = this._getFill();
   x = Math.round(x);
@@ -567,7 +567,6 @@ p5.Renderer2D.prototype.point = function(x, y) {
 };
 
 p5.Renderer2D.prototype.quad = function(x1, y1, x2, y2, x3, y3, x4, y4) {
-  var ctx = this.drawingContext;
   var doFill = this._doFill,
     doStroke = this._doStroke;
   if (doFill && !doStroke) {
@@ -579,6 +578,7 @@ p5.Renderer2D.prototype.quad = function(x1, y1, x2, y2, x3, y3, x4, y4) {
       return this;
     }
   }
+  var ctx = this.drawingContext;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.lineTo(x2, y2);
@@ -594,15 +594,13 @@ p5.Renderer2D.prototype.quad = function(x1, y1, x2, y2, x3, y3, x4, y4) {
   return this;
 };
 
-p5.Renderer2D.prototype.rect = function(args) {
-  var x = args[0],
-    y = args[1],
-    w = args[2],
-    h = args[3],
-    tl = args[4],
-    tr = args[5],
-    br = args[6],
-    bl = args[7];
+p5.Renderer2D.prototype.rect = function(x, y, w, h, tl, tr, br, bl) {
+  var vals = canvas.modeAdjust(x, y, w, h, this._rectMode);
+  x = vals.x;
+  y = vals.y;
+  w = vals.w;
+  h = vals.h;
+
   var ctx = this.drawingContext;
   var doFill = this._doFill,
     doStroke = this._doStroke;
@@ -687,16 +685,9 @@ p5.Renderer2D.prototype.rect = function(args) {
   return this;
 };
 
-p5.Renderer2D.prototype.triangle = function(args) {
-  var ctx = this.drawingContext;
+p5.Renderer2D.prototype.triangle = function(x1, y1, x2, y2, x3, y3) {
   var doFill = this._doFill,
     doStroke = this._doStroke;
-  var x1 = args[0],
-    y1 = args[1];
-  var x2 = args[2],
-    y2 = args[3];
-  var x3 = args[4],
-    y3 = args[5];
   if (doFill && !doStroke) {
     if (this._getFill() === styleEmpty) {
       return this;
@@ -706,6 +697,7 @@ p5.Renderer2D.prototype.triangle = function(args) {
       return this;
     }
   }
+  var ctx = this.drawingContext;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.lineTo(x2, y2);
@@ -1059,21 +1051,25 @@ p5.Renderer2D.prototype._setStroke = function(strokeStyle) {
 // SHAPE | Curves
 //////////////////////////////////////////////
 p5.Renderer2D.prototype.bezier = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+  if (!this._doStroke && !this._doFill) {
+    return;
+  }
   this._pInst.beginShape();
   this._pInst.vertex(x1, y1);
   this._pInst.bezierVertex(x2, y2, x3, y3, x4, y4);
   this._pInst.endShape();
-  return this;
 };
 
 p5.Renderer2D.prototype.curve = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+  if (!this._doStroke && !this._doFill) {
+    return;
+  }
   this._pInst.beginShape();
   this._pInst.curveVertex(x1, y1);
   this._pInst.curveVertex(x2, y2);
   this._pInst.curveVertex(x3, y3);
   this._pInst.curveVertex(x4, y4);
   this._pInst.endShape();
-  return this;
 };
 
 //////////////////////////////////////////////
@@ -1107,8 +1103,8 @@ p5.Renderer2D.prototype.resetMatrix = function() {
   return this;
 };
 
-p5.Renderer2D.prototype.rotate = function(rad) {
-  this.drawingContext.rotate(rad);
+p5.Renderer2D.prototype.rotate = function(angle) {
+  this.drawingContext.rotate(this._pInst._toRadians(angle));
 };
 
 p5.Renderer2D.prototype.scale = function(x, y) {
@@ -1116,13 +1112,13 @@ p5.Renderer2D.prototype.scale = function(x, y) {
   return this;
 };
 
-p5.Renderer2D.prototype.shearX = function(rad) {
-  this.drawingContext.transform(1, 0, Math.tan(rad), 1, 0, 0);
+p5.Renderer2D.prototype.shearX = function(angle) {
+  this.drawingContext.transform(1, 0, this._pInst.tan(angle), 1, 0, 0);
   return this;
 };
 
-p5.Renderer2D.prototype.shearY = function(rad) {
-  this.drawingContext.transform(1, Math.tan(rad), 0, 1, 0, 0);
+p5.Renderer2D.prototype.shearY = function(angle) {
+  this.drawingContext.transform(1, this._pInst.tan(angle), 0, 1, 0, 0);
   return this;
 };
 
@@ -1298,6 +1294,9 @@ p5.Renderer2D.prototype._renderText = function(p, line, x, y, maxY) {
 };
 
 p5.Renderer2D.prototype.textWidth = function(s) {
+  if (s.length === 0) {
+    return 0;
+  }
   if (this._isOpenType()) {
     return this._textFont._textWidth(s, this._textSize);
   }

@@ -102,10 +102,6 @@ p5.prototype.ellipseMode = function(m) {
  * 2 pixelated 36x36 white ellipses to left & right of center, black background
  *
  */
-p5.prototype.noSmooth = function() {
-  this._renderer.noSmooth();
-  return this;
-};
 
 /**
  * Modifies the location from which rectangles are drawn by changing the way
@@ -199,10 +195,7 @@ p5.prototype.rectMode = function(m) {
  * 2 pixelated 36x36 white ellipses one left one right of center. On black.
  *
  */
-p5.prototype.smooth = function() {
-  this._renderer.smooth();
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Sets the style for rendering line endings. These ends are either squared,
@@ -229,16 +222,7 @@ p5.prototype.smooth = function() {
  * 3 lines. Top line: rounded ends, mid: squared, bottom:longer squared ends.
  *
  */
-p5.prototype.strokeCap = function(cap) {
-  if (
-    cap === constants.ROUND ||
-    cap === constants.SQUARE ||
-    cap === constants.PROJECT
-  ) {
-    this._renderer.strokeCap(cap);
-  }
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Sets the style of the joints which connect line segments. These joints
@@ -295,16 +279,7 @@ p5.prototype.strokeCap = function(cap) {
  * Right-facing arrowhead shape with rounded tip in center of canvas.
  *
  */
-p5.prototype.strokeJoin = function(join) {
-  if (
-    join === constants.ROUND ||
-    join === constants.BEVEL ||
-    join === constants.MITER
-  ) {
-    this._renderer.strokeJoin(join);
-  }
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Sets the width of the stroke used for lines, points, and the border
@@ -329,9 +304,6 @@ p5.prototype.strokeJoin = function(join) {
  * 3 horizontal black lines. Top line: thin, mid: medium, bottom:thick.
  *
  */
-p5.prototype.strokeWeight = function(w) {
-  this._renderer.strokeWeight(w);
-  return this;
-};
+// see thunkRendererMethods
 
 module.exports = p5;

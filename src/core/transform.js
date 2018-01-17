@@ -115,10 +115,7 @@ var p5 = require('./core');
  * A rectangle shearing
  *
  */
-p5.prototype.applyMatrix = function(a, b, c, d, e, f) {
-  this._renderer.applyMatrix(a, b, c, d, e, f);
-  return this;
-};
+// see thunkRendererMethods
 
 p5.prototype.popMatrix = function() {
   throw new Error('popMatrix() not used, see pop()');
@@ -153,10 +150,7 @@ p5.prototype.pushMatrix = function() {
  * A rotated retangle in the center with another at the top left corner
  *
  */
-p5.prototype.resetMatrix = function() {
-  this._renderer.resetMatrix();
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Rotates a shape the amount specified by the angle parameter. This
@@ -192,10 +186,7 @@ p5.prototype.resetMatrix = function() {
  * white 52x52 rect with black outline at center rotated counter 45 degrees
  *
  */
-p5.prototype.rotate = function(angle, axis) {
-  this._renderer.rotate(this._toRadians(angle), axis);
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Rotates around X axis.
@@ -220,12 +211,7 @@ p5.prototype.rotate = function(angle, axis) {
  * @alt
  * 3d box rotating around the x axis.
  */
-p5.prototype.rotateX = function(angle) {
-  this._assert3d('rotateX');
-  p5._validateParameters('rotateX', arguments);
-  this._renderer.rotateX(this._toRadians(angle));
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Rotates around Y axis.
@@ -250,12 +236,7 @@ p5.prototype.rotateX = function(angle) {
  * @alt
  * 3d box rotating around the y axis.
  */
-p5.prototype.rotateY = function(angle) {
-  this._assert3d('rotateY');
-  p5._validateParameters('rotateY', arguments);
-  this._renderer.rotateY(this._toRadians(angle));
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Rotates around Z axis. Webgl mode only.
@@ -280,12 +261,7 @@ p5.prototype.rotateY = function(angle) {
  * @alt
  * 3d box rotating around the z axis.
  */
-p5.prototype.rotateZ = function(angle) {
-  this._assert3d('rotateZ');
-  p5._validateParameters('rotateZ', arguments);
-  this._renderer.rotateZ(this._toRadians(angle));
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Increases or decreases the size of a shape by expanding and contracting
@@ -394,10 +370,7 @@ p5.prototype.scale = function(x, y, z) {
  * white irregular quadrilateral with black outline at top middle.
  *
  */
-p5.prototype.shearX = function(angle) {
-  this._renderer.shearX(this._toRadians(angle));
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Shears a shape around the y-axis the amount specified by the angle
@@ -432,10 +405,7 @@ p5.prototype.shearX = function(angle) {
  * white irregular quadrilateral with black outline at middle bottom.
  *
  */
-p5.prototype.shearY = function(angle) {
-  this._renderer.shearY(this._toRadians(angle));
-  return this;
-};
+// see thunkRendererMethods
 
 /**
  * Specifies an amount to displace objects within the display window.
@@ -491,18 +461,6 @@ p5.prototype.shearY = function(angle) {
  * a 20x20 white rect moving in a circle around the canvas
  *
  */
-/**
- * @method translate
- * @param  {p5.Vector} vector the vector to translate by
- * @chainable
- */
-p5.prototype.translate = function(x, y, z) {
-  if (this._renderer.isP3D) {
-    this._renderer.translate(x, y, z);
-  } else {
-    this._renderer.translate(x, y);
-  }
-  return this;
-};
+// see thunkRendererMethods
 
 module.exports = p5;
