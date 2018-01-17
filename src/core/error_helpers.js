@@ -582,6 +582,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
     }
     var func = docData.name;
     var docs = docData.docs || (docData.docs = parseParamDoc(docData));
+    
     var errorArray = [];
     var minErrCount = 999999;
     var overloads = docs.overloads;
