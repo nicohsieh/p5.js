@@ -383,8 +383,9 @@ if (typeof IS_MINIFIED !== 'undefined') {
 
     if (message) {
       try {
-        var re = /Function\.validateParameters.*[\r\n].*[\r\n].*\(([^)]*)/;
-        var location = re.exec(new Error().stack)[1];
+        var re = /Function\.validateParameters.*(\r|\n)*.*(\r|\n)*.*\(([^)]*)/;
+        var match = re.exec(new Error().stack);
+        var location = match && match[1];
         if (location) {
           message += ' at ' + location;
         }

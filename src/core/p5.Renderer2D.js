@@ -1359,14 +1359,14 @@ p5.Renderer2D.prototype._applyTextProperties = function() {
   var font,
     p = this._pInst;
 
-  this._setProperty('_textAscent', null);
-  this._setProperty('_textDescent', null);
+  this._textAscent = null;
+  this._textDescent = null;
 
   font = this._textFont;
 
   if (this._isOpenType()) {
     font = this._textFont.font.familyName;
-    this._setProperty('_textStyle', this._textFont.font.styleName);
+    this._textStyle = this._textFont.font.styleName;
   }
 
   this.drawingContext.font =

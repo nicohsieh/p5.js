@@ -94,15 +94,15 @@ suite('Core', function() {
     });*/
   });
 
-  suite('p5.prototype.registerMethod', function() {
+  suite('p5.registerMethod', function() {
     test('should register and call "init" methods', function() {
-      var originalInit = p5.prototype._registeredMethods.init;
+      var originalInit = p5._registeredMethods.init;
       var myp5, myInitCalled;
 
-      p5.prototype._registeredMethods.init = [];
+      p5._registeredMethods.init = [];
 
       try {
-        p5.prototype.registerMethod('init', function myInit() {
+        p5.registerMethod('init', function myInit() {
           assert(
             !myInitCalled,
             'myInit should only be called once during test suite'
@@ -121,7 +121,7 @@ suite('Core', function() {
 
         assert(myp5.sketchFunctionCalled);
       } finally {
-        p5.prototype._registeredMethods.init = originalInit;
+        p5._registeredMethods.init = originalInit;
       }
     });
   });

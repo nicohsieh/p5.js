@@ -142,7 +142,7 @@ p5.prototype.loadJSON = function() {
         callback(resp);
       }
 
-      self._decrementPreload();
+      this._decrementPreload();
     }.bind(this),
     errorCallback
   );
@@ -556,13 +556,12 @@ function makeObject(row, headers) {
   return ret;
 }
 
-/*global parseXML */
 p5.prototype.parseXML = function(two) {
   var one = new p5.XML();
   var i;
   if (two.children.length) {
     for (i = 0; i < two.children.length; i++) {
-      var node = parseXML(two.children[i]);
+      var node = this.parseXML(two.children[i]);
       one.addChild(node);
     }
     one.setName(two.nodeName);
@@ -1027,14 +1026,16 @@ p5.prototype.httpDo = function() {
 
         throw res;
       })
-      .then(function(resp) {
-        if (type === 'xml') {
-          var parser = new DOMParser();
-          resp = parser.parseFromString(resp, 'text/xml');
-          resp = parseXML(resp.documentElement);
-        }
-        callback(resp);
-      })
+      .then(
+        function(resp) {
+          if (type === 'xml') {
+            var parser = new DOMParser();
+            resp = parser.parseFromString(resp, 'text/xml');
+            resp = this.parseXML(resp.documentElement);
+          }
+          callback(resp);
+        }.bind(this)
+      )
       .catch(function(err, msg) {
         if (errorCallback) {
           errorCallback(err);

@@ -486,8 +486,8 @@ p5.prototype.colorMode = function(mode, max1, max2, max3, maxA) {
  * @chainable
  */
 p5.prototype.fill = function() {
-  this._renderer._setProperty('_fillSet', true);
-  this._renderer._setProperty('_doFill', true);
+  this._renderer._fillSet = true;
+  this._renderer._doFill = true;
   this._renderer.fill.apply(this._renderer, arguments);
   return this;
 };
@@ -529,7 +529,7 @@ p5.prototype.fill = function() {
  * black canvas with purple cube wireframe spinning
  */
 p5.prototype.noFill = function() {
-  this._renderer._setProperty('_doFill', false);
+  this._renderer._doFill = false;
   return this;
 };
 
@@ -569,7 +569,7 @@ p5.prototype.noFill = function() {
  * black canvas with pink cube spinning
  */
 p5.prototype.noStroke = function() {
-  this._renderer._setProperty('_doStroke', false);
+  this._renderer._doStroke = false;
   return this;
 };
 
@@ -733,8 +733,8 @@ p5.prototype.noStroke = function() {
  */
 
 p5.prototype.stroke = function() {
-  this._renderer._setProperty('_strokeSet', true);
-  this._renderer._setProperty('_doStroke', true);
+  this._renderer._strokeSet = true;
+  this._renderer._doStroke = true;
   this._renderer.stroke.apply(this._renderer, arguments);
   return this;
 };

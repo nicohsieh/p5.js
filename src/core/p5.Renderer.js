@@ -29,7 +29,7 @@ p5.Renderer = function(elt, pInst, isMainCanvas) {
   if (isMainCanvas) {
     this._isMainCanvas = true;
     // for pixel method sharing with pimage
-    this._pInst._setProperty('_curElement', this);
+    this._pInst._curElement = this;
     this._pInst._setProperty('canvas', this.canvas);
     this._pInst._setProperty('width', this.width);
     this._pInst._setProperty('height', this.height);
@@ -78,7 +78,7 @@ p5.Renderer.prototype.resize = function(w, h) {
 
 p5.Renderer.prototype.textLeading = function(l) {
   if (typeof l === 'number') {
-    this._setProperty('_textLeading', l);
+    this._textLeading = l;
     return this;
   }
 
@@ -87,8 +87,8 @@ p5.Renderer.prototype.textLeading = function(l) {
 
 p5.Renderer.prototype.textSize = function(s) {
   if (typeof s === 'number') {
-    this._setProperty('_textSize', s);
-    this._setProperty('_textLeading', s * constants._DEFAULT_LEADMULT);
+    this._textSize = s;
+    this._textLeading = s * constants._DEFAULT_LEADMULT;
     return this._applyTextProperties();
   }
 
@@ -102,7 +102,7 @@ p5.Renderer.prototype.textStyle = function(s) {
       s === constants.ITALIC ||
       s === constants.BOLD
     ) {
-      this._setProperty('_textStyle', s);
+      this._textStyle = s;
     }
 
     return this._applyTextProperties();
@@ -176,8 +176,8 @@ p5.Renderer.prototype._updateTextMetrics = function() {
 
   document.body.removeChild(container);
 
-  this._setProperty('_textAscent', ascent);
-  this._setProperty('_textDescent', descent);
+  this._textAscent = ascent;
+  this._textDescent = descent;
 
   return this;
 };

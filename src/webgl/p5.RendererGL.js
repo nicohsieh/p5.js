@@ -179,7 +179,7 @@ p5.RendererGL.prototype._resetContext = function(attr, options, callback) {
   }
   this._pInst.canvas = c;
   var renderer = new p5.RendererGL(this._pInst.canvas, this._pInst, true, attr);
-  this._pInst._setProperty('_renderer', renderer);
+  this._pInst._renderer = renderer;
   renderer.resize(w, h);
   renderer._applyDefaults();
   this._pInst._elements.push(renderer);

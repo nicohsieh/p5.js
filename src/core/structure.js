@@ -353,21 +353,20 @@ p5.prototype.redraw = function(n) {
     numberOfRedraws = 1;
   }
 
-  var userSetup = this.setup || window.setup;
-  var userDraw = this.draw || window.draw;
+  var userSetup = this._context.setup;
+  var userDraw = this._context.draw;
   if (typeof userDraw === 'function') {
     if (typeof userSetup === 'undefined') {
       this.scale(this._pixelDensity, this._pixelDensity);
     }
-    var self = this;
     var callMethod = function(f) {
-      f.call(self);
+      f.call(this);
     };
     for (var idxRedraw = 0; idxRedraw < numberOfRedraws; idxRedraw++) {
       this._setProperty('frameCount', this.frameCount + 1);
-      this._registeredMethods.pre.forEach(callMethod);
+      this._registeredMethods.pre.forEach(callMethod, this);
       userDraw();
-      this._registeredMethods.post.forEach(callMethod);
+      this._registeredMethods.post.forEach(callMethod, this);
     }
   }
 };

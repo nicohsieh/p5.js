@@ -255,10 +255,10 @@ p5.prototype.textFont = function(theFont, theSize) {
       throw Error('null font passed to textFont');
     }
 
-    this._renderer._setProperty('_textFont', theFont);
+    this._renderer._textFont = theFont;
 
     if (theSize) {
-      this._renderer._setProperty('_textSize', theSize);
+      this._renderer._textSize = theSize;
       this._renderer._setProperty(
         '_textLeading',
         theSize * constants._DEFAULT_LEADMULT

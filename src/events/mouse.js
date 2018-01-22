@@ -373,7 +373,7 @@ p5.prototype._updateNextMouseCoords = function(e) {
   if (!this._hasMouseInteracted) {
     // For first draw, make previous and next equal
     this._updateMouseCoords();
-    this._setProperty('_hasMouseInteracted', true);
+    this._hasMouseInteracted = true;
   }
 };
 
@@ -504,7 +504,7 @@ p5.prototype._setMouseButton = function(e) {
  *
  */
 p5.prototype._onmousemove = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   var executeDefault;
   this._updateNextMouseCoords(e);
   if (!this.mouseIsPressed) {
@@ -577,7 +577,7 @@ p5.prototype._onmousemove = function(e) {
  *
  */
 p5.prototype._onmousedown = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   var executeDefault;
   this._setProperty('mouseIsPressed', true);
   this._setMouseButton(e);
@@ -643,7 +643,7 @@ p5.prototype._onmousedown = function(e) {
  *
  */
 p5.prototype._onmouseup = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   var executeDefault;
   this._setProperty('mouseIsPressed', false);
   if (typeof context.mouseReleased === 'function') {
@@ -712,7 +712,7 @@ p5.prototype._ondragover = p5.prototype._onmousemove;
  *
  */
 p5.prototype._onclick = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   if (typeof context.mouseClicked === 'function') {
     var executeDefault = context.mouseClicked(e);
     if (executeDefault === false) {
@@ -770,7 +770,7 @@ p5.prototype._onclick = function(e) {
  */
 
 p5.prototype._ondblclick = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   if (typeof context.doubleClicked === 'function') {
     var executeDefault = context.doubleClicked(e);
     if (executeDefault === false) {
@@ -821,7 +821,7 @@ p5.prototype._ondblclick = function(e) {
  *
  */
 p5.prototype._onwheel = function(e) {
-  var context = this._isGlobal ? window : this;
+  var context = this._context;
   if (typeof context.mouseWheel === 'function') {
     e.delta = e.deltaY;
     var executeDefault = context.mouseWheel(e);

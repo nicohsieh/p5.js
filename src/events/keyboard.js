@@ -235,7 +235,7 @@ p5.prototype._onkeyup = function(e) {
     this._setProperty('keyIsPressed', false);
   }
 
-  this._setProperty('_lastKeyCodeTyped', null);
+  this._lastKeyCodeTyped = null;
 
   var key = String.fromCharCode(e.which);
   if (!key) {
@@ -295,7 +295,7 @@ p5.prototype._onkeypress = function(e) {
     return;
   }
   this._setProperty('keyCode', e.which);
-  this._setProperty('_lastKeyCodeTyped', e.which); // track last keyCode
+  this._lastKeyCodeTyped = e.which; // track last keyCode
   this._setProperty('key', String.fromCharCode(e.which));
   var keyTyped = this.keyTyped || window.keyTyped;
   if (typeof keyTyped === 'function') {

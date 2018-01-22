@@ -178,7 +178,6 @@ var p5 = function(sketch, node, sync) {
   this._elements = [];
   this._requestAnimId = 0;
   this._preloadCount = 0;
-  this._isGlobal = !sketch;
   this._context = sketch ? this : window;
   this._loop = true;
   this._initializeInstanceVariables();
@@ -228,21 +227,19 @@ var p5 = function(sketch, node, sync) {
 
   // call any registered init functions
   this._registeredMethods.init.forEach(function(f) {
-    if (typeof f !== 'undefined') {
-      f.call(this);
-    }
+    f && f.call(this);
   }, this);
 
-  // If the user has created a global setup or draw function,
-  // assume "global" mode and make everything global (i.e. on the window)
   if (!sketch) {
-    this._isGlobal = true;
     p5.instance = this;
 
-    var friendlyBindGlobal = _createFriendlyGlobalFunctionBinder();
+    // If the user has created a global setup or draw function,
+    // assume "global" mode and make everything global (i.e. on the window)
+    var friendlyBindGlobal = this._createFriendlyGlobalFunctionBinder();
     // Loop through methods on the prototype and attach them to the window
     for (var p in p5.prototype) {
-      var pm = pm;
+      if (p.charAt(0) === '_') continue;
+      var pm = p5.prototype[p];
       if (typeof pm === 'function') {
         var ev = p.substring(2);
         if (!this._events.hasOwnProperty(ev)) {
@@ -256,20 +253,21 @@ var p5 = function(sketch, node, sync) {
         }
       } else {
         friendlyBindGlobal(p, pm);
-        console.log('p5 prototype property: ' + p);
+        //console.log('p5 prototype property: ' + p);
       }
     }
     // Attach its properties to the window
     for (var p2 in this) {
+      if (p2.charAt(0) === '_') continue;
       if (this.hasOwnProperty(p2)) {
         console.log('p5 non-prototype property: ' + p2);
-        friendlyBindGlobal(p2, this[p2]);
+        //friendlyBindGlobal(p2, this[p2]);
       }
     }
   } else {
     // Else, the user has passed in a sketch closure that may set
     // user-provided 'setup', 'draw', etc. properties on this instance of p5
-    sketch(this);
+    sketch(this._context);
   }
 
   // Bind events to window (not using container div bc key events don't work)
@@ -311,85 +309,104 @@ p5.prototype._start = function() {
     }
   }
 
-  var userPreload = this.preload || window.preload; // look for "preload"
+  this._inPreload = true;
+  this._incrementPreload();
+
+  var userPreload = this._context.preload; // look for "preload"
   if (userPreload) {
+    var preloadWraps = (this.preloadWraps = []);
 
-    //var original
+    var nestedPreload = 0;
 
-    for (var method in this._preloadMethods) {
+    var wrapPreload = function(obj, methodName) {
+      var originalMethod = obj[methodName];
+      preloadWraps.push({
+        obj: obj,
+        methodName: methodName,
+        originalMethod: originalMethod
+      });
+
+      var wrapper = function() {
+        if (!nestedPreload) {
+          //increment counter
+          this._incrementPreload();
+        }
+
+        nestedPreload++;
+        //call original function
+        var value = originalMethod.apply(obj, arguments);
+        nestedPreload--;
+
+        return value;
+      };
+      if (obj !== this) {
+        wrapper = wrapper.bind(this);
+      }
+      obj[methodName] = wrapper;
+    };
+
+    for (var method in p5._preloadMethods) {
       // default to p5 if no object defined
-      this._preloadMethods[method] = this._preloadMethods[method] || p5;
-      var obj = this._preloadMethods[method];
+      var obj = p5._preloadMethods[method] || p5;
       //it's p5, check if it's global or instance
       if (obj === p5.prototype || obj === p5) {
         obj = this._context;
       }
-      this._registeredPreloadMethods[method] = obj[method];
-      obj[method] = this._wrapPreload(obj, method);
+      wrapPreload.call(this, obj, method);
     }
 
     userPreload();
-
-    // return preload functions to their normal vals if switched by preload
-    for (var f in this._preloadMethods) {
-      context[f] = this._preloadMethods[f][f];
-      if (context[f] && this) {
-        context[f] = context[f].bind(this);
-      }
-    }
-
-    if (this._context._preloadCount > 0) {
-      // Setup loading screen
-      // Set loading scfeen into dom if not present
-      // Otherwise displays and removes user provided loading screen
-      var loadingScreen = document.getElementById(this._loadingScreenId);
-      if (!loadingScreen) {
-        loadingScreen = document.createElement('div');
-        loadingScreen.innerHTML = 'Loading...';
-        loadingScreen.style.position = 'absolute';
-        loadingScreen.id = this._loadingScreenId;
-        var node = this._userNode || document.body;
-        node.appendChild(loadingScreen);
-      }
-    }
   }
 
-  this._runIfPreloadsAreDone();
-};
+  this._decrementPreload();
 
-p5.prototype._runIfPreloadsAreDone = function() {
-  var context = this._context;
-  if (context._preloadCount === 0) {
-    var loadingScreen = document.getElementById(context._loadingScreenId);
-    if (loadingScreen) {
-      loadingScreen.parentNode.removeChild(loadingScreen);
+  if (this._preloadCount > 0) {
+    // Setup loading screen
+    // Set loading scfeen into dom if not present
+    // Otherwise displays and removes user provided loading screen
+    var loadingScreen = document.getElementById(this._loadingScreenId);
+    if (!loadingScreen) {
+      loadingScreen = document.createElement('div');
+      loadingScreen.innerHTML = 'Loading...';
+      loadingScreen.style.position = 'absolute';
+      loadingScreen.id = this._loadingScreenId;
+      var node = this._userNode || document.body;
+      node.appendChild(loadingScreen);
     }
-    context._setup();
-    context._runFrames();
-    context._draw();
   }
 };
 
 p5.prototype._decrementPreload = function() {
-  var context = this._context;
-  if (typeof context.preload === 'function') {
-    context._setProperty('_preloadCount', context._preloadCount - 1);
-    context._runIfPreloadsAreDone();
+  if (this._inPreload) {
+    this._preloadCount--;
+    if (this._preloadCount === 0) {
+      var loadingScreen = document.getElementById(this._loadingScreenId);
+      if (loadingScreen) {
+        loadingScreen.parentNode.removeChild(loadingScreen);
+      }
+
+      if (this.preloadWraps) {
+        // return preload functions to their normal vals if switched by preload
+        for (var i = 0; i < this.preloadWraps.length; i++) {
+          var preloadWrap = this.preloadWraps[i];
+          preloadWrap.obj[preloadWrap.methodName] = preloadWrap.originalMethod;
+        }
+      }
+
+      this._inPreload = false;
+      this._setup();
+      this._runFrames();
+      this._draw();
+    } else if (this._preloadCount < 0) {
+      console.warn('too many _decrementPreload() calls!');
+    }
   }
 };
 
-p5.prototype._wrapPreload = function(obj, fnName) {
-  return function() {
-    //increment counter
-    this._incrementPreload();
-    //call original function
-    return this._registeredPreloadMethods[fnName].apply(obj, arguments);
-  }.bind(this);
-};
-
 p5.prototype._incrementPreload = function() {
-  var context = this._context;
-  context._setProperty('_preloadCount', context._preloadCount + 1);
+  if (this._inPreload) {
+    this._preloadCount++;
+  }
 };
 
 p5.prototype._setup = function() {
@@ -404,8 +421,8 @@ p5.prototype._setup = function() {
 
   // Short-circuit on this, in case someone used the library in "global"
   // mode earlier
-  if (typeof context.setup === 'function') {
-    context.setup();
+  if (typeof this._context.setup === 'function') {
+    this._context.setup();
   }
 
   // unhide any hidden canvases that were created
@@ -465,10 +482,25 @@ p5.prototype._runFrames = function() {
   }
 };
 
+/**
+ * sets a property on the p5 instance. also updates proxy property
+ * on context/window object if sketch is global.
+ * when called on an image, mark the image as modified (for texture refresh).
+ *
+ * @method _setProperty
+ * @private
+ * @param {String} prop
+ * @param {*} value
+ */
 p5.prototype._setProperty = function(prop, value) {
   this[prop] = value;
-  if (this._isGlobal) {
-    window[prop] = value;
+  if (this !== this._context) {
+    if (typeof IS_MINIFIED === 'undefined') {
+      if (prop && prop.charAt(0) === '_') {
+        console.warn('unnecessary call to _setProperty() for private property');
+      }
+    }
+    this._context[prop] = value;
   }
 };
 
@@ -522,28 +554,25 @@ p5.prototype.remove = function() {
     }
 
     // call any registered remove functions
-    var self = this;
     this._registeredMethods.remove.forEach(function(f) {
-      if (typeof f !== 'undefined') {
-        f.call(self);
-      }
-    });
+      f && f.call(this);
+    }, this);
 
-    // remove window bound properties and methods
-    if (this._isGlobal) {
+    if (this !== this._context) {
+      // remove window bound properties and methods
       for (var p in p5.prototype) {
         try {
-          delete window[p];
+          delete this._context[p];
         } catch (x) {
-          window[p] = undefined;
+          this._context[p] = undefined;
         }
       }
       for (var p2 in this) {
         if (this.hasOwnProperty(p2)) {
           try {
-            delete window[p2];
+            delete this._context[p2];
           } catch (x) {
-            window[p2] = undefined;
+            this._context[p2] = undefined;
           }
         }
       }
@@ -575,9 +604,9 @@ p5.instance = null;
 // which can give a significant boost to performance when needed.
 p5.disableFriendlyErrors = false;
 
-// attach constants to window
+// attach constants to p5 prototype
 for (var k in constants) {
-  window[k] = constants[k];
+  p5.prototype[k] = constants[k];
 }
 
 // functions that cause preload to wait
@@ -604,16 +633,17 @@ p5.registerPreloadMethod = function(fnString, obj) {
     p5._preloadMethods[fnString] = obj;
   }
 };
+p5.prototype.registerPreloadMethod = p5.registerPreloadMethod;
 
 p5.registerMethod = function(name, m) {
-  var target = this || p5.prototype;
-  if (!target._registeredMethods.hasOwnProperty(name)) {
-    target._registeredMethods[name] = [];
+  if (!this._registeredMethods.hasOwnProperty(name)) {
+    this._registeredMethods[name] = [];
   }
-  target._registeredMethods[name].push(m);
+  this._registeredMethods[name].push(m);
 };
+p5.prototype.registerMethod = p5.registerPreloadMethod;
 
-function _createFriendlyGlobalFunctionBinder(options) {
+p5.prototype._createFriendlyGlobalFunctionBinder = function(options) {
   options = options || {};
 
   var globalObject = options.globalObject || window;
@@ -667,21 +697,21 @@ function _createFriendlyGlobalFunctionBinder(options) {
             });
             log(
               'You just changed the value of "' +
-              prop +
-              '", which was ' +
-              "a p5 function. This could cause problems later if you're " +
-              'not careful.'
+                prop +
+                '", which was ' +
+                "a p5 function. This could cause problems later if you're " +
+                'not careful.'
             );
           }
         });
       } catch (e) {
         log(
           'p5 had problems creating the global function "' +
-          prop +
-          '", ' +
-          'possibly because your code is already using that name as ' +
-          'a variable. You may want to rename your variable to something ' +
-          'else.'
+            prop +
+            '", ' +
+            'possibly because your code is already using that name as ' +
+            'a variable. You may want to rename your variable to something ' +
+            'else.'
         );
         globalObject[prop] = value;
       }
@@ -689,6 +719,6 @@ function _createFriendlyGlobalFunctionBinder(options) {
       globalObject[prop] = value;
     }
   };
-}
+};
 
 module.exports = p5;
