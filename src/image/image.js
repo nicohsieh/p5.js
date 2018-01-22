@@ -154,9 +154,7 @@ p5.prototype.saveCanvas = function(cnv, filename, extension) {
   }
 
   extension =
-    extension ||
-    p5.prototype._checkFileExtension(filename, extension)[1] ||
-    'png';
+    extension || p5._checkFileExtension(filename, extension)[1] || 'png';
 
   var mimeType;
   switch (extension) {
@@ -170,9 +168,12 @@ p5.prototype.saveCanvas = function(cnv, filename, extension) {
       break;
   }
 
-  cnv.toBlob(function(blob) {
-    p5.prototype.downloadFile(blob, filename, extension);
-  }, mimeType);
+  cnv.toBlob(
+    function(blob) {
+      this.downloadFile(blob, filename, extension);
+    }.bind(this),
+    mimeType
+  );
 };
 
 /**
@@ -221,10 +222,10 @@ p5.prototype.saveCanvas = function(cnv, filename, extension) {
 p5.prototype.saveFrames = function(fName, ext, _duration, _fps, callback) {
   p5._validateParameters('saveFrames', arguments);
   var duration = _duration || 3;
-  duration = p5.prototype.constrain(duration, 0, 15);
+  duration = this.constrain(duration, 0, 15);
   duration = duration * 1000;
   var fps = _fps || 15;
-  fps = p5.prototype.constrain(fps, 0, 22);
+  fps = this.constrain(fps, 0, 22);
   var count = 0;
 
   var makeFrame = p5.prototype._makeFrame;
@@ -241,7 +242,7 @@ p5.prototype.saveFrames = function(fName, ext, _duration, _fps, callback) {
     } else {
       for (var i = 0; i < frames.length; i++) {
         var f = frames[i];
-        p5.prototype.downloadFile(f.imageData, f.filename, f.ext);
+        this.downloadFile(f.imageData, f.filename, f.ext);
       }
     }
     frames = []; // clear frames

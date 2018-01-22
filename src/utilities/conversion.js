@@ -164,7 +164,7 @@ p5.prototype.boolean = function(n) {
  * @return {Number[]}                  array of byte representation of values
  */
 p5.prototype.byte = function(n) {
-  var nn = p5.prototype.int(n, 10);
+  var nn = this.int(n, 10);
   if (typeof nn === 'number') {
     return (nn + 128) % 256 - 128;
   } else if (nn instanceof Array) {
@@ -202,7 +202,7 @@ p5.prototype.char = function(n) {
   } else if (n instanceof Array) {
     return n.map(p5.prototype.char);
   } else if (typeof n === 'string') {
-    return p5.prototype.char(parseInt(n, 10));
+    return this.char(parseInt(n, 10));
   }
 };
 

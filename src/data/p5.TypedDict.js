@@ -335,7 +335,7 @@ p5.TypedDict.prototype.saveTable = function(filename) {
   }
 
   var blob = new Blob([output], { type: 'text/csv' });
-  p5.prototype.downloadFile(blob, filename || 'mycsv', 'csv');
+  this.downloadFile(blob, filename || 'mycsv', 'csv');
 };
 
 /**
@@ -361,7 +361,7 @@ p5.TypedDict.prototype.saveTable = function(filename) {
  */
 
 p5.TypedDict.prototype.saveJSON = function(filename, opt) {
-  p5.prototype.saveJSON(this.data, filename, opt);
+  this.saveJSON(this.data, filename, opt);
 };
 
 /**

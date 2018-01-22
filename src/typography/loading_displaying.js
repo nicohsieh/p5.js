@@ -87,54 +87,56 @@ require('../core/error_helpers');
 p5.prototype.loadFont = function(path, onSuccess, onError) {
   var p5Font = new p5.Font(this);
 
-  var self = this;
-  opentype.load(path, function(err, font) {
-    if (err) {
-      if (typeof onError !== 'undefined') {
-        return onError(err);
+  opentype.load(
+    path,
+    function(err, font) {
+      if (err) {
+        if (typeof onError !== 'undefined') {
+          return onError(err);
+        }
+        p5._friendlyFileLoadError(4, path);
+        console.error(err, path);
+        return;
       }
-      p5._friendlyFileLoadError(4, path);
-      console.error(err, path);
-      return;
-    }
 
-    p5Font.font = font;
+      p5Font.font = font;
 
-    if (typeof onSuccess !== 'undefined') {
-      onSuccess(p5Font);
-    }
+      if (typeof onSuccess !== 'undefined') {
+        onSuccess(p5Font);
+      }
 
-    self._decrementPreload();
+      this._decrementPreload();
 
-    // check that we have an acceptable font type
-    var validFontTypes = ['ttf', 'otf', 'woff', 'woff2'],
-      fileNoPath = path
-        .split('\\')
-        .pop()
-        .split('/')
-        .pop(),
-      lastDotIdx = fileNoPath.lastIndexOf('.'),
-      fontFamily,
-      newStyle,
-      fileExt = lastDotIdx < 1 ? null : fileNoPath.substr(lastDotIdx + 1);
+      // check that we have an acceptable font type
+      var validFontTypes = ['ttf', 'otf', 'woff', 'woff2'],
+        fileNoPath = path
+          .split('\\')
+          .pop()
+          .split('/')
+          .pop(),
+        lastDotIdx = fileNoPath.lastIndexOf('.'),
+        fontFamily,
+        newStyle,
+        fileExt = lastDotIdx < 1 ? null : fileNoPath.substr(lastDotIdx + 1);
 
-    // if so, add it to the DOM (name-only) for use with p5.dom
-    if (validFontTypes.indexOf(fileExt) > -1) {
-      fontFamily = fileNoPath.substr(0, lastDotIdx);
-      newStyle = document.createElement('style');
-      newStyle.appendChild(
-        document.createTextNode(
-          '\n@font-face {' +
-            '\nfont-family: ' +
-            fontFamily +
-            ';\nsrc: url(' +
-            path +
-            ');\n}\n'
-        )
-      );
-      document.head.appendChild(newStyle);
-    }
-  });
+      // if so, add it to the DOM (name-only) for use with p5.dom
+      if (validFontTypes.indexOf(fileExt) > -1) {
+        fontFamily = fileNoPath.substr(0, lastDotIdx);
+        newStyle = document.createElement('style');
+        newStyle.appendChild(
+          document.createTextNode(
+            '\n@font-face {' +
+              '\nfont-family: ' +
+              fontFamily +
+              ';\nsrc: url(' +
+              path +
+              ');\n}\n'
+          )
+        );
+        document.head.appendChild(newStyle);
+      }
+    }.bind(this)
+  );
 
   return p5Font;
 };

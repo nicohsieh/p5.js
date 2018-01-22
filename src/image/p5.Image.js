@@ -813,7 +813,7 @@ p5.Image.prototype.isModified = function() {
  *
  */
 p5.Image.prototype.save = function(filename, extension) {
-  p5.prototype.saveCanvas(this.canvas, filename, extension);
+  this.saveCanvas(this.canvas, filename, extension);
 };
 
 module.exports = p5.Image;

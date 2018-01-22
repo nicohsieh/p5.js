@@ -129,7 +129,6 @@ p5.prototype.loadJSON = function() {
     }
   }
 
-  var self = this;
   this.httpDo(
     path,
     'GET',
@@ -144,7 +143,7 @@ p5.prototype.loadJSON = function() {
       }
 
       self._decrementPreload();
-    },
+    }.bind(this),
     errorCallback
   );
 
@@ -226,7 +225,6 @@ p5.prototype.loadStrings = function() {
     }
   }
 
-  var self = this;
   p5.prototype.httpDo.call(
     this,
     arguments[0],
@@ -242,8 +240,8 @@ p5.prototype.loadStrings = function() {
         callback(ret);
       }
 
-      self._decrementPreload();
-    },
+      this._decrementPreload();
+    }.bind(this),
     errorCallback
   );
 
@@ -392,7 +390,6 @@ p5.prototype.loadTable = function(path) {
 
   var t = new p5.Table();
 
-  var self = this;
   this.httpDo(
     path,
     'GET',
@@ -525,8 +522,8 @@ p5.prototype.loadTable = function(path) {
         callback(t);
       }
 
-      self._decrementPreload();
-    },
+      this._decrementPreload();
+    }.bind(this),
     function(err) {
       // Error handling
       p5._friendlyFileLoadError(2, path);
@@ -663,7 +660,6 @@ p5.prototype.loadXML = function() {
     }
   }
 
-  var self = this;
   this.httpDo(
     arguments[0],
     'GET',
@@ -676,8 +672,8 @@ p5.prototype.loadXML = function() {
         callback(ret);
       }
 
-      self._decrementPreload();
-    },
+      this._decrementPreload();
+    }.bind(this),
     errorCallback
   );
 
@@ -1058,7 +1054,7 @@ p5.prototype.httpDo = function() {
 window.URL = window.URL || window.webkitURL;
 
 // private array of p5.PrintWriter objects
-p5.prototype._pWriters = [];
+var _pWriters = [];
 
 /**
  * @method createWriter
@@ -1084,18 +1080,18 @@ p5.prototype._pWriters = [];
 p5.prototype.createWriter = function(name, extension) {
   var newPW;
   // check that it doesn't already exist
-  for (var i in p5.prototype._pWriters) {
-    if (p5.prototype._pWriters[i].name === name) {
+  for (var i in _pWriters) {
+    if (_pWriters[i].name === name) {
       // if a p5.PrintWriter w/ this name already exists...
-      // return p5.prototype._pWriters[i]; // return it w/ contents intact.
+      // return _pWriters[i]; // return it w/ contents intact.
       // or, could return a new, empty one with a unique name:
       newPW = new p5.PrintWriter(name + window.millis(), extension);
-      p5.prototype._pWriters.push(newPW);
+      _pWriters.push(newPW);
       return newPW;
     }
   }
   newPW = new p5.PrintWriter(name, extension);
-  p5.prototype._pWriters.push(newPW);
+  _pWriters.push(newPW);
   return newPW;
 };
 
@@ -1106,7 +1102,6 @@ p5.prototype.createWriter = function(name, extension) {
  *  @param  {String}     [extension]
  */
 p5.PrintWriter = function(filename, extension) {
-  var self = this;
   this.name = filename;
   this.content = '';
   //Changed to write because it was being overloaded by function below.
@@ -1137,16 +1132,16 @@ p5.PrintWriter = function(filename, extension) {
     // convert String to Array for the writeFile Blob
     var arr = [];
     arr.push(this.content);
-    p5.prototype.writeFile(arr, filename, extension);
+    this.writeFile(arr, filename, extension);
+
     // remove from _pWriters array and delete self
-    for (var i in p5.prototype._pWriters) {
-      if (p5.prototype._pWriters[i].name === this.name) {
+    for (var i in _pWriters) {
+      if (_pWriters[i].name === this.name) {
         // remove from _pWriters array
-        p5.prototype._pWriters.splice(i, 1);
+        _pWriters.splice(i, 1);
       }
     }
-    self.flush();
-    self = {};
+    this.flush();
   };
 };
 
@@ -1249,39 +1244,39 @@ p5.prototype.save = function(object, _filename, _options) {
   // if no arguments are provided, save canvas
   var cnv = this._curElement.elt;
   if (args.length === 0) {
-    p5.prototype.saveCanvas(cnv);
+    this.saveCanvas(cnv);
     return;
   } else if (args[0] instanceof p5.Renderer || args[0] instanceof p5.Graphics) {
     // otherwise, parse the arguments
 
     // if first param is a p5Graphics, then saveCanvas
-    p5.prototype.saveCanvas(args[0].elt, args[1], args[2]);
+    this.saveCanvas(args[0].elt, args[1], args[2]);
     return;
   } else if (args.length === 1 && typeof args[0] === 'string') {
     // if 1st param is String and only one arg, assume it is canvas filename
-    p5.prototype.saveCanvas(cnv, args[0]);
+    this.saveCanvas(cnv, args[0]);
   } else {
     // =================================================
     // OPTION 2: extension clarifies saveStrings vs. saveJSON
-    var extension = _checkFileExtension(args[1], args[2])[1];
+    var extension = p5._checkFileExtension(args[1], args[2])[1];
     switch (extension) {
       case 'json':
-        p5.prototype.saveJSON(args[0], args[1], args[2]);
+        this.saveJSON(args[0], args[1], args[2]);
         return;
       case 'txt':
-        p5.prototype.saveStrings(args[0], args[1], args[2]);
+        this.saveStrings(args[0], args[1], args[2]);
         return;
       // =================================================
       // OPTION 3: decide based on object...
       default:
         if (args[0] instanceof Array) {
-          p5.prototype.saveStrings(args[0], args[1], args[2]);
+          this.saveStrings(args[0], args[1], args[2]);
         } else if (args[0] instanceof p5.Table) {
-          p5.prototype.saveTable(args[0], args[1], args[2]);
+          this.saveTable(args[0], args[1], args[2]);
         } else if (args[0] instanceof p5.Image) {
-          p5.prototype.saveCanvas(args[0].canvas, args[1]);
+          this.saveCanvas(args[0].canvas, args[1]);
         } else if (args[0] instanceof p5.SoundFile) {
-          p5.prototype.saveSound(args[0], args[1], args[2], args[3]);
+          this.saveSound(args[0], args[1], args[2], args[3]);
         }
     }
   }
@@ -1537,13 +1532,13 @@ p5.prototype.saveTable = function(table, filename, options) {
  */
 p5.prototype.writeFile = function(dataToDownload, filename, extension) {
   var type = 'application/octet-stream';
-  if (p5.prototype._isSafari()) {
+  if (p5._isSafari()) {
     type = 'text/plain';
   }
   var blob = new Blob(dataToDownload, {
     type: type
   });
-  p5.prototype.downloadFile(blob, filename, extension);
+  this.downloadFile(blob, filename, extension);
 };
 
 /**
@@ -1559,7 +1554,7 @@ p5.prototype.writeFile = function(dataToDownload, filename, extension) {
  *  @param  {String} [extension]
  */
 p5.prototype.downloadFile = function(data, fName, extension) {
-  var fx = _checkFileExtension(fName, extension);
+  var fx = p5._checkFileExtension(fName, extension);
   var filename = fx[0];
 
   if (data instanceof Blob) {
@@ -1582,7 +1577,7 @@ p5.prototype.downloadFile = function(data, fName, extension) {
   document.body.appendChild(a);
 
   // Safari will open this file in the same page as a confusing Blob.
-  if (p5.prototype._isSafari()) {
+  if (p5._isSafari()) {
     var aText = 'Hello, Safari user! To download this file...\n';
     aText += '1. Go to File --> Save As.\n';
     aText += '2. Choose "Page Source" as the Format.\n';
@@ -1602,7 +1597,7 @@ p5.prototype.downloadFile = function(data, fName, extension) {
  *
  *  @private
  */
-function _checkFileExtension(filename, extension) {
+p5._checkFileExtension = function(filename, extension) {
   if (!extension || extension === true || extension === 'true') {
     extension = '';
   }
@@ -1622,8 +1617,7 @@ function _checkFileExtension(filename, extension) {
     }
   }
   return [filename, ext];
-}
-p5.prototype._checkFileExtension = _checkFileExtension;
+};
 
 /**
  *  Returns true if the browser is Safari, false if not.
@@ -1632,7 +1626,7 @@ p5.prototype._checkFileExtension = _checkFileExtension;
  *  @return  {Boolean} [description]
  *  @private
  */
-p5.prototype._isSafari = function() {
+p5._isSafari = function() {
   var x = Object.prototype.toString.call(window.HTMLElement);
   return x.indexOf('Constructor') > 0;
 };
