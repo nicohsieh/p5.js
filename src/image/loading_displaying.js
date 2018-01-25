@@ -366,6 +366,11 @@ p5.prototype.image = function(
 /**
  * @method tint
  * @param  {String}        value   a color string
+ */
+
+/**
+ * @method tint
+ * @param  {Number}        gray   a gray value
  * @param  {Number}        [alpha]
  */
 
