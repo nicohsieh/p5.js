@@ -381,6 +381,41 @@ if (typeof IS_MINIFIED !== 'undefined') {
     return score;
   };
 
+  // generate a score (higher is worse) for applying these args to
+  // this overload.
+  var scoreOverload = function(args, argCount, overload, minScore) {
+    var score = 0;
+    var formats = overload.formats;
+
+    // check for too few/many args
+    // the score is double number of extra/missing args
+    if (argCount < overload.minParams) {
+      score = (overload.minParams - argCount) * 2;
+    } else if (argCount > formats.length) {
+      score = (argCount - formats.length) * 2;
+    }
+
+    // loop through the formats, adding up the error score for each arg.
+    // quit early if the score gets higher than the previous best overload.
+    for (var p = 0; score <= minScore && p < formats.length; p++) {
+      var arg = args[p];
+      var format = formats[p];
+      var argType = typeof arg;
+      if ('undefined' === argType) {
+        // handle non-optional and non-trailing undefined args
+        if (
+          !format.optional ||
+          (p < overload.minParams ? true : p < argCount)
+        ) {
+          score += 1;
+        }
+      } else if (!testParamTypes(arg, format.types)) {
+        score += 1;
+      }
+    }
+    return score;
+  };
+
   // gets a list of errors for this overload
   var getOverloadErrors = function(args, argCount, overload) {
     var formats = overload.formats;
