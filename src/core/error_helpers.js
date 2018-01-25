@@ -146,6 +146,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
   };
 
   var builtinTypes = [
+    'null',
     'number',
     'string',
     'boolean',
@@ -170,19 +171,36 @@ if (typeof IS_MINIFIED !== 'undefined') {
     var overloads = [];
     if (docData.hasOwnProperty('overloads')) {
       for (var i = 0; i < docData.overloads.length; i++) {
-        overloads.push(docData.overloads[i].params);
+        overloads.push({ formats: queryResult.overloads[i].params });
       }
     } else {
-      overloads.push(docData.params || []);
+      // no overloads, just add the main method definition
+      overloads.push({ formats: queryResult.params || [] });
     }
 
+    // parse the parameter types for each overload
     var mapConstants = {};
     var maxParams = 0;
-    overloads.forEach(function(formats) {
+    overloads.forEach(function(overload) {
+      var formats = overload.formats;
+
+      // keep a record of the maximum number of arguments
+      // this method requires.
       if (maxParams < formats.length) {
         maxParams = formats.length;
       }
+
+      // calculate the minimum number of arguments
+      // this overload requires.
+      var minParams = formats.length;
+      while (minParams > 0 && formats[minParams - 1].optional) {
+        minParams--;
+      }
+      overload.minParams = minParams;
+
+      // loop through each parameter position, and parse its types
       formats.forEach(function(format) {
+        // split this parameter's types
         format.types = format.type.split('|').map(function ct(type) {
           // array
           if (type.substr(type.length - 2, 2) === '[]') {
@@ -274,67 +292,136 @@ if (typeof IS_MINIFIED !== 'undefined') {
 
   var testParamType = function(param, type) {
     var isArray = param instanceof Array;
+    var matches = true;
     if (type.array && isArray) {
       for (var i = 0; i < param.length; i++) {
-        if (!testParamType(param[i], type.array)) {
-          return false;
-        }
+        var error = testParamType(param[i], type.array);
+        if (error) return error / 2; // half error for elements
       }
-      return true;
     } else if (type.prototype) {
-      return param instanceof type.prototype;
+      matches = param instanceof type.prototype;
     } else if (type.builtin) {
       switch (type.builtin) {
         case 'number':
-          return typeof param === 'number' || (!!param && !isNaN(param));
+          matches =
+            typeof param === 'number' || (!!param && !isArray && !isNaN(param));
+          break;
         case 'integer':
-          return (
-            (typeof param === 'number' || (!!param && !isNaN(param))) &&
-            Number(param) === Math.floor(param)
-          );
+          matches =
+            (typeof param === 'number' ||
+              (!!param && !isArray && !isNaN(param))) &&
+            Number(param) === Math.floor(param);
+          break;
         case 'boolean':
         case 'any':
-          return true;
+          matches = true;
+          break;
         case 'array':
-          return isArray;
+          matches = isArray;
+          break;
         case 'string':
-          return typeof param === 'number' || typeof param === 'string';
+          matches = /*typeof param === 'number' ||*/ typeof param === 'string';
+          break;
         case 'constant':
-          return type.values.hasOwnProperty(param);
+          matches = type.values.hasOwnProperty(param);
+          break;
         case 'function':
-          return param instanceof Function;
+          matches = param instanceof Function;
+          break;
+        case 'null':
+          matches = param === null;
+          break;
       }
+    } else {
+      matches = typeof param === type.t;
     }
-
-    return typeof param === type.t;
+    return matches ? 0 : 1;
   };
 
   // testType() for non-object type parameter validation
-  // Returns true if PASS, false if FAIL
   var testParamTypes = function(param, types) {
-    for (var i = 0; i < types.length; i++) {
-      if (testParamType(param, types[i])) {
-        return true;
-      }
+    var minScore = 9999;
+    for (var i = 0; minScore > 0 && i < types.length; i++) {
+      var score = testParamType(param, types[i]);
+      if (minScore > score) minScore = score;
     }
-    return false;
+    return minScore;
   };
 
-  var testParamFormat = function(args, formats) {
+  // generate a score (higher is worse) for applying these args to
+  // this overload.
+  var scoreOverload = function(args, argCount, overload, minScore) {
+    var score = 0;
+    var formats = overload.formats;
+
+    // check for too few/many args
+    // the score is double number of extra/missing args
+    if (argCount < overload.minParams) {
+      score = (overload.minParams - argCount) * 2;
+    } else if (argCount > formats.length) {
+      score = (argCount - formats.length) * 2;
+    }
+
+    // loop through the formats, adding up the error score for each arg.
+    // quit early if the score gets higher than the previous best overload.
+    for (var p = 0; score <= minScore && p < formats.length; p++) {
+      var arg = args[p];
+      var format = formats[p];
+      if (arg == null) {
+        // handle non-optional and non-trailing undefined args
+        if (
+          !format.optional ||
+          (p < overload.minParams ? true : p < argCount)
+        ) {
+          score += 1;
+        }
+      } else {
+        score += testParamTypes(arg, format.types);
+      }
+    }
+    return score;
+  };
+
+  // gets a list of errors for this overload
+  var getOverloadErrors = function(args, argCount, overload) {
+    var formats = overload.formats;
+
+    // check for too few/many args
+    if (argCount < overload.minParams) {
+      return [
+        {
+          type: 'TOO_FEW_ARGUMENTS',
+          argCount: argCount,
+          minParams: overload.minParams
+        }
+      ];
+    } else if (argCount > formats.length) {
+      return [
+        {
+          type: 'TOO_MANY_ARGUMENTS',
+          argCount: argCount,
+          maxParams: formats.length
+        }
+      ];
+    }
+
     var errorArray = [];
     for (var p = 0; p < formats.length; p++) {
       var arg = args[p];
       var format = formats[p];
-      var argType = typeof arg;
-      if ('undefined' === argType || null === arg) {
-        if (format.optional !== true) {
+      if (arg == null) {
+        // handle non-optional and non-trailing undefined args
+        if (
+          !format.optional ||
+          (p < overload.minParams ? true : p < argCount)
+        ) {
           errorArray.push({
             type: 'EMPTY_VAR',
             position: p,
             format: format
           });
         }
-      } else if (!testParamTypes(arg, format.types)) {
+      } else if (testParamTypes(arg, format.types) > 0) {
         errorArray.push({
           type: 'WRONG_TYPE',
           position: p,
@@ -343,8 +430,24 @@ if (typeof IS_MINIFIED !== 'undefined') {
         });
       }
     }
+
     return errorArray;
   };
+
+  // a custom error type, used by the mocha
+  // tests when expecting validation errors
+  p5.ValidationError = (function(name) {
+    var err = function(message, func) {
+      this.message = message;
+      this.func = func;
+      if ('captureStackTrace' in Error) Error.captureStackTrace(this, err);
+      else this.stack = new Error().stack;
+    };
+    err.prototype = Object.create(Error.prototype);
+    err.prototype.name = name;
+    err.prototype.constructor = err;
+    return err;
+  })('ValidationError');
 
   // function for generating console.log() msg
   var friendlyParamError = function(errorObj, func) {
@@ -373,7 +476,10 @@ if (typeof IS_MINIFIED !== 'undefined') {
         break;
       case 'WRONG_TYPE':
         var arg = errorObj.arg;
-        var argType = arg instanceof Array ? 'array' : arg.name || typeof arg;
+        var argType =
+          arg instanceof Array
+            ? 'array'
+            : arg === null ? 'null' : arg.name || typeof arg;
         message =
           func +
           '() was expecting ' +
@@ -384,10 +490,18 @@ if (typeof IS_MINIFIED !== 'undefined') {
           argType +
           ' instead';
         break;
-      case 'WRONG_ARGUMENT_COUNT':
+      case 'TOO_FEW_ARGUMENTS':
         message =
           func +
-          '() was expecting ' +
+          '() was expecting at least ' +
+          errorObj.minParams +
+          ' arguments, but received only ' +
+          errorObj.argCount;
+        break;
+      case 'TOO_MANY_ARGUMENTS':
+        message =
+          func +
+          '() was expecting no more than ' +
           errorObj.maxParams +
           ' arguments, but received ' +
           errorObj.argCount;
@@ -395,6 +509,10 @@ if (typeof IS_MINIFIED !== 'undefined') {
     }
 
     if (message) {
+      if (p5._throwValidationErrors) {
+        throw new p5.ValidationError(message);
+      }
+
       try {
         var re = /Function\.validateParameters.*[\r\n].*[\r\n].*\(([^)]*)/;
         var location = re.exec(new Error().stack)[1];
@@ -434,30 +552,39 @@ if (typeof IS_MINIFIED !== 'undefined') {
     var errorArray = [];
     var minErrCount = 999999;
     var overloads = docs.overloads;
+
+    // ignore any trailing `undefined` arguments
+    var argCount = args.length;
+    while (argCount > 0 && args[argCount - 1] == null) argCount--;
+
+    // find the overload with the best score
+    var minScore = 99999;
+    var minOverload;
     for (var i = 0; i < overloads.length; i++) {
-      var arrError = testParamFormat(args, overloads[i]);
-      // see if this is the format with min number of err
-      if (minErrCount > arrError.length) {
-        minErrCount = arrError.length;
-        errorArray = arrError;
-      }
-      if (arrError.length === 0) {
-        break; // no error
+      var score = scoreOverload(args, argCount, overloads[i], minScore);
+      if (score === 0) {
+        return; // done!
+      } else if (minScore > score) {
+        // this score is better that what we have so far...
+        minScore = score;
+        minOverload = i;
       }
     }
 
-    if (!errorArray.length && args.length > docs.maxParams) {
-      errorArray.push({
-        type: 'WRONG_ARGUMENT_COUNT',
-        argCount: args.length,
-        maxParams: docs.maxParams
-      });
-    }
+    // this should _always_ be true here...
+    if (minScore > 0) {
+      // get the errors for the best overload
+      var errorArray = getOverloadErrors(
+        args,
+        argCount,
+        overloads[minOverload]
+      );
 
-    // generate err msg
-    for (var n = 0; n < errorArray.length; n++) {
-      friendlyParamError(errorArray[n], func);
-    }
+      // generate err msg
+      for (var n = 0; n < errorArray.length; n++) {
+        friendlyParamError(errorArray[n], func);
+      }
+    }  
   };
 
   // this is only for use by the mocha tests
