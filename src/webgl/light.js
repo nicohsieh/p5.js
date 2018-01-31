@@ -241,7 +241,7 @@ p5.RendererGL.prototype.directionalLight = function(v1, v2, v3, x, y, z) {
   if (v1 instanceof p5.Color) {
     color = v1;
   } else {
-    color = this.color(v1, v2, v3);
+    color = this._pInst.color(v1, v2, v3);
   }
 
   var _x, _y, _z;
@@ -341,7 +341,7 @@ p5.RendererGL.prototype.pointLight = function(v1, v2, v3, x, y, z) {
   if (v1 instanceof p5.Color) {
     color = v1;
   } else {
-    color = this.color(v1, v2, v3);
+    color = this._pInst.color(v1, v2, v3);
   }
 
   var _x, _y, _z;
