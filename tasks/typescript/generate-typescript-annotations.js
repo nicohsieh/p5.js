@@ -20,6 +20,7 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
   var emit;
   var constants = {};
   var missingTypes = {};
+  var emittingGlobal = true;
 
   // http://stackoverflow.com/a/2008353/2422398
   var JS_SYMBOL_RE = /^[$A-Z_][0-9A-Z_$]*$/i;
@@ -242,7 +243,11 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
     }
 
     if (constants[type]) {
-      return type;
+      if (emittingGlobal) {
+        return type;
+      } else {
+        return 'p5.' + type;
+      }
     }
 
     missingTypes[type] = true;
@@ -430,8 +435,8 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
     emit('}');
   }
 
-  function emitConstants() {
-    emit('// Constants ');
+  function emitEnums() {
+    emit('// Enums ');
     Object.keys(constants).forEach(function(key) {
       var values = constants[key];
 
@@ -467,6 +472,8 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
       }
     });
 
+    emittingGlobal = false;
+
     emit = createEmitter(localFileame);
 
     emit('declare class p5 {');
@@ -485,7 +492,11 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
     emit.dedent();
     emit('}\n');
 
+    emitEnums();
+
     emit.close();
+
+    emittingGlobal = true;
 
     emit = createEmitter(globalFilename);
 
@@ -493,7 +504,7 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
 
     p5Aliases.forEach(generateP5Properties);
 
-    emitConstants();
+    emitEnums();
 
     emit.close();
 
