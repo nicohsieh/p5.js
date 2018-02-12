@@ -1,18 +1,16 @@
-
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
 }
 
 function draw() {
-
   background(150);
 
-  var t = millis()/1000;
+  var t = millis() / 1000;
 
   fill(255, 200, 100);
 
   push();
-  translate(-width/3, -height/3);
+  translate(-width / 3, -height / 3);
   rotateX(t);
   translate(-50, -50);
   beginShape();
@@ -25,7 +23,7 @@ function draw() {
   pop();
 
   push();
-  translate(0, -height/3);
+  translate(0, -height / 3);
   rotateX(t);
   translate(-50, -50);
   beginShape(LINES);
@@ -37,7 +35,7 @@ function draw() {
   pop();
 
   push();
-  translate(width/3, -height/3);
+  translate(width / 3, -height / 3);
   noFill();
   rotateX(t);
   translate(-50, -50);
@@ -50,7 +48,7 @@ function draw() {
   pop();
 
   push();
-  translate(-width/3, 0);
+  translate(-width / 3, 0);
   noFill();
   rotateX(t);
   translate(-50, -50);
@@ -77,7 +75,7 @@ function draw() {
   pop();
 
   push();
-  translate(width/3, 0);
+  translate(width / 3, 0);
   rotateX(t);
   translate(-50, -50);
   beginShape(TRIANGLE_STRIP);
@@ -92,7 +90,7 @@ function draw() {
   pop();
 
   push();
-  translate(-width/3, height/3);
+  translate(-width / 3, height / 3);
   rotateX(t);
   translate(-50, -50);
   beginShape(TRIANGLE_FAN);
@@ -106,7 +104,7 @@ function draw() {
   pop();
 
   push();
-  translate(0, height/3);
+  translate(0, height / 3);
   rotateX(t);
   translate(-50, -50);
   beginShape();
@@ -118,7 +116,6 @@ function draw() {
   vertex(20, 60);
   endShape(CLOSE);
   pop();
-  
 }
 
 // function draw(){

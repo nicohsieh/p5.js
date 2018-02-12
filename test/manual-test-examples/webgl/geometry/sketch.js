@@ -17,10 +17,9 @@ function draw() {
 
   push();
   normalMaterial();
-  translate(0, -height/5, 0);
+  translate(0, -height / 5, 0);
   drawGeometries();
   pop();
-
 
   push();
   fill(150, 150, 150);
@@ -30,13 +29,12 @@ function draw() {
 
   push();
   fill(150, 150, 150, 100);
-  translate(0, height/5, 0);
+  translate(0, height / 5, 0);
   drawGeometries();
   pop();
 }
 
 function drawGeometries() {
-  
   push();
   var w = width * 5 / 6;
   translate(-w / 2, 0, 0);

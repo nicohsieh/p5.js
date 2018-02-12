@@ -582,10 +582,6 @@ if (typeof IS_MINIFIED !== 'undefined') {
     }
     var func = docData.name;
     var docs = docData.docs || (docData.docs = parseParamDoc(docData));
-    
-    var errorArray = [];
-    var minErrCount = 999999;
-    var overloads = docs.overloads;
 
     // ignore any trailing `undefined` arguments
     var argCount = args.length;
@@ -594,6 +590,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
     // find the overload with the best score
     var minScore = 99999;
     var minOverload;
+    var overloads = docs.overloads;
     for (var i = 0; i < overloads.length; i++) {
       var score = scoreOverload(args, argCount, overloads[i], minScore);
       if (score === 0) {
