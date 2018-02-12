@@ -591,15 +591,6 @@ if (typeof IS_MINIFIED !== 'undefined') {
     var minScore = 99999;
     var minOverload;
     var overloads = docs.overloads;
-
-    // ignore any trailing `undefined` arguments
-    var argCount = args.length;
-    while (argCount > 0 && typeof args[argCount - 1] === 'undefined')
-      argCount--;
-
-    // find the overload with the best score
-    var minScore = 99999;
-    var minOverload;
     for (var i = 0; i < overloads.length; i++) {
       var score = scoreOverload(args, argCount, overloads[i], minScore);
       if (score === 0) {
