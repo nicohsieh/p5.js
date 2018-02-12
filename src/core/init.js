@@ -52,9 +52,6 @@ var p5 = require('../core/core');
     // create the proxy in p5 that calls into the _renderer
     p5.prototype[m] = (function(m) {
       return function() {
-        // validate the parameters
-        p5._validateParameters(m, arguments);
-
         // thunk through to the underlying renderer method
         var ret = this._renderer[m].apply(this._renderer, arguments);
 
