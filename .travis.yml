@@ -19,7 +19,7 @@ deploy:
     - "lib/p5.d.ts"
     - "lib/p5.global-mode.d.ts"
   on:
-    branch: master
+    all_branches: true
     repo: Spongman/p5.js
 cache:
   yarn: true
