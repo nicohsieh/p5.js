@@ -5,6 +5,11 @@ attribute vec3 aPosition;
 attribute vec3 aNormal;
 attribute vec2 aTexCoord;
 
+// material properties
+attribute vec3 aAmbientColor;
+attribute vec4 aMaterialColor;
+attribute vec3 aSpecularColor;
+
 // matrices
 uniform mat4 uViewMatrix;
 uniform mat4 uModelViewMatrix;
@@ -25,16 +30,11 @@ uniform int uPointLightCount;
 uniform vec3 uPointLightLocation[8];
 uniform vec3 uPointLightColor[8];
 
-// material properties
-uniform vec3 uAmbientColor;
-uniform vec4 uMaterialColor;
-uniform vec3 uSpecularColor;
-
-
 //varying vec3 vVertexNormal;
 varying highp vec2 vVertTexCoord;
 varying vec4 vVertexColor;
 varying vec3 vDiffuseLight;
+varying vec4 vMaterialColor;
 
 void main(void){
 
@@ -63,7 +63,8 @@ void main(void){
 
   vVertTexCoord = aTexCoord;
   vDiffuseLight = totalDiffuseLight;
+  vMaterialColor = aMaterialColor;
 
-  vVertexColor = vec4(totalAmbientLight * uAmbientColor, 0) + 
-                 vec4(totalSpecularLight * uSpecularColor, 0);
+  vVertexColor = vec4(totalAmbientLight * aAmbientColor, 0) + 
+                 vec4(totalSpecularLight * aSpecularColor, 0);
 }
