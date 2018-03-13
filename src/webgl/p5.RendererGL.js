@@ -1054,10 +1054,12 @@ p5.RendererGL.prototype._vToNArray = function(arr) {
  */
 p5.prototype._assert3d = function(name) {
   if (!this._renderer.isP3D)
-    throw name +
-      "() is only supported in WEBGL mode. If you'd " +
-      'like to use 3D graphics and WebGL, see ' +
-      'https://p5js.org/examples/form-3d-primitives.html for more information.';
+    throw new Error(
+      name +
+        "() is only supported in WEBGL mode. If you'd like to use 3D graphics" +
+        ' and WebGL, see  https://p5js.org/examples/form-3d-primitives.html' +
+        ' for more information.'
+    );
 };
 
 module.exports = p5.RendererGL;
