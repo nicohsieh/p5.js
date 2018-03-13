@@ -334,14 +334,11 @@ var p5 = function(sketch, node, sync) {
     }
 
     // unhide any hidden canvases that were created
-    var canvases = document.getElementsByTagName('canvas');
-    for (var i = 0; i < canvases.length; i++) {
-      var k = canvases[i];
-      if (k.dataset.hidden === 'true') {
-        k.style.visibility = '';
-        delete k.dataset.hidden;
-      }
+    for (var i = 0; i < this._elements.length; i++) {
+      var element = this._elements[i];
+      element.elt.style.visibility = '';
     }
+
     this._setupDone = true;
   }.bind(this);
 
@@ -398,6 +395,15 @@ var p5 = function(sketch, node, sync) {
     }
   }.bind(this);
 
+  this._removeElement = function(e) {
+    if (e.elt.parentNode) {
+      e.elt.parentNode.removeChild(e.elt);
+    }
+    for (var elt_ev in e._events) {
+      e.elt.removeEventListener(elt_ev, e._events[elt_ev]);
+    }
+  }.bind(this);
+
   /**
    * Removes the entire p5 sketch. This will remove the canvas and any
    * elements created by p5.js. It will also stop the draw loop and unbind
@@ -438,14 +444,9 @@ var p5 = function(sketch, node, sync) {
 
       // remove DOM elements created by p5, and listeners
       for (var i = 0; i < this._elements.length; i++) {
-        var e = this._elements[i];
-        if (e.elt.parentNode) {
-          e.elt.parentNode.removeChild(e.elt);
-        }
-        for (var elt_ev in e._events) {
-          e.elt.removeEventListener(elt_ev, e._events[elt_ev]);
-        }
+        this._removeElement(this._elements[i]);
       }
+      this._elements = [];
 
       // call any registered remove functions
       var self = this;

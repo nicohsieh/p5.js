@@ -1,9 +1,11 @@
 'use strict';
 
 var p5 = require('./core/core');
+require('./core/constants');
 require('./color/p5.Color');
 require('./core/p5.Element');
 require('./typography/p5.Font');
+require('./core/p5.Renderer');
 require('./core/p5.Graphics');
 require('./core/p5.Renderer2D');
 
@@ -15,7 +17,6 @@ require('./io/p5.XML');
 
 require('./color/creating_reading');
 require('./color/setting');
-require('./core/constants');
 require('./utilities/conversion');
 require('./utilities/array_functions');
 require('./utilities/string_functions');
@@ -59,6 +60,8 @@ require('./webgl/light');
 require('./webgl/p5.Shader');
 require('./webgl/camera');
 require('./webgl/interaction');
+
+require('./svg/p5.RendererSVG');
 
 require('./core/init.js');
 

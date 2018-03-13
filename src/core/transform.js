@@ -9,6 +9,7 @@
 'use strict';
 
 var p5 = require('./core');
+var constants = require('./constants');
 
 /**
  * Multiplies the current matrix by the one specified through the parameters.
@@ -223,7 +224,7 @@ p5.prototype.rotate = function(angle, axis) {
  */
 p5.prototype.rotateX = function(angle) {
   p5._validateParameters('rotateX', arguments);
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.rotateX(this._toRadians(angle));
   } else {
     throw 'not supported in p2d. Please use webgl mode';
@@ -256,7 +257,7 @@ p5.prototype.rotateX = function(angle) {
  */
 p5.prototype.rotateY = function(angle) {
   p5._validateParameters('rotateY', arguments);
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.rotateY(this._toRadians(angle));
   } else {
     throw 'not supported in p2d. Please use webgl mode';
@@ -289,7 +290,7 @@ p5.prototype.rotateY = function(angle) {
  */
 p5.prototype.rotateZ = function(angle) {
   p5._validateParameters('rotateZ', arguments);
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.rotateZ(this._toRadians(angle));
   } else {
     throw 'not supported in p2d. Please use webgl mode';
@@ -511,7 +512,7 @@ p5.prototype.shearY = function(angle) {
  */
 p5.prototype.translate = function(x, y, z) {
   p5._validateParameters('translate', arguments);
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.translate(x, y, z);
   } else {
     this._renderer.translate(x, y);

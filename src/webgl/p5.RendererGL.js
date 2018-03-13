@@ -44,8 +44,9 @@ var defaultShaders = {
  * rendering (FBO).
  *
  */
-p5.RendererGL = function(elt, pInst, isMainCanvas, attr) {
-  p5.Renderer.call(this, elt, pInst, isMainCanvas);
+p5.RendererGL = function(pInst, isMainCanvas, attr) {
+  var elt = document.createElement('canvas');
+  p5.Renderer.call(this, elt, pInst, constants.WEBGL, isMainCanvas);
   this.attributes = {};
   attr = attr || {};
   this.attributes.alpha = attr.alpha === undefined ? true : attr.alpha;
@@ -62,7 +63,6 @@ p5.RendererGL = function(elt, pInst, isMainCanvas, attr) {
   this.attributes.perPixelLighting =
     attr.perPixelLighting === undefined ? false : attr.perPixelLighting;
   this._initContext();
-  this.isP3D = true; //lets us know we're in 3d mode
   this.GL = this.drawingContext;
 
   // lights
@@ -138,8 +138,8 @@ p5.RendererGL.prototype = Object.create(p5.Renderer.prototype);
 p5.RendererGL.prototype._initContext = function() {
   try {
     this.drawingContext =
-      this.canvas.getContext('webgl', this.attributes) ||
-      this.canvas.getContext('experimental-webgl', this.attributes);
+      this.elt.getContext('webgl', this.attributes) ||
+      this.elt.getContext('experimental-webgl', this.attributes);
     if (this.drawingContext === null) {
       throw new Error('Error creating webgl context');
     } else {
@@ -163,8 +163,8 @@ p5.RendererGL.prototype._initContext = function() {
 p5.RendererGL.prototype._resetContext = function(attr, options, callback) {
   var w = this.width;
   var h = this.height;
-  var defaultId = this.canvas.id;
-  var c = this.canvas;
+  var defaultId = this.elt.id;
+  var c = this.elt;
   if (c) {
     c.parentNode.removeChild(c);
   }
@@ -175,9 +175,9 @@ p5.RendererGL.prototype._resetContext = function(attr, options, callback) {
   } else {
     document.body.appendChild(c);
   }
-  this._pInst.canvas = c;
+  this._pInst.elt = c;
 
-  var renderer = new p5.RendererGL(this._pInst.canvas, this._pInst, true, attr);
+  var renderer = new p5.RendererGL(this._pInst.elt, this._pInst, true, attr);
   this._pInst._setProperty('_renderer', renderer);
   renderer.resize(w, h);
   renderer._applyDefaults();

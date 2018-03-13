@@ -8,6 +8,7 @@
 'use strict';
 
 var p5 = require('./core');
+var constants = require('constants');
 
 p5.prototype.exit = function() {
   throw 'exit() not implemented, see remove()';
@@ -333,7 +334,7 @@ p5.prototype.popStyle = function() {
  */
 p5.prototype.redraw = function(n) {
   this.resetMatrix();
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer._update();
   }
 

@@ -81,11 +81,9 @@ require('./error_helpers');
  */
 p5.prototype.bezier = function() {
   p5._validateParameters('bezier', arguments);
-
   if (this._renderer._doStroke || this._renderer._doFill) {
     this._renderer.bezier.apply(this._renderer, arguments);
   }
-
   return this;
 };
 
@@ -333,7 +331,6 @@ p5.prototype.bezierTangent = function(a, b, c, d, t) {
  */
 p5.prototype.curve = function() {
   p5._validateParameters('curve', arguments);
-
   if (this._renderer._doStroke) {
     this._renderer.curve.apply(this._renderer, arguments);
   }

@@ -15,11 +15,13 @@ require('./p5.Renderer');
 var styleEmpty = 'rgba(0,0,0,0)';
 // var alphaThreshold = 0.00125; // minimum visible
 
-p5.Renderer2D = function(elt, pInst, isMainCanvas) {
-  p5.Renderer.call(this, elt, pInst, isMainCanvas);
+p5.Renderer2D = function(pInst, isMainCanvas) {
+  var elt = document.createElement('canvas');
+  p5.Renderer.call(this, elt, pInst, constants.P2D, isMainCanvas);
+
   this.name = 'p5.Renderer2D'; // for friendly debugger system
-  this.drawingContext = this.canvas.getContext('2d');
-  this._pInst._setProperty('drawingContext', this.drawingContext);
+  this.drawingContext = this.elt.getContext('2d');
+  pInst._setProperty('drawingContext', this.drawingContext);
   return this;
 };
 
@@ -103,7 +105,7 @@ p5.Renderer2D.prototype.image = function(
       if (p5.MediaElement && img instanceof p5.MediaElement) {
         img.loadPixels();
       }
-      if (img.canvas) {
+      if (img.elt) {
         cnv = this._getTintedImageCanvas(img);
       }
     }
@@ -129,15 +131,15 @@ p5.Renderer2D.prototype.image = function(
 };
 
 p5.Renderer2D.prototype._getTintedImageCanvas = function(img) {
-  if (!img.canvas) {
+  if (!img.elt) {
     return img;
   }
-  var pixels = filters._toPixels(img.canvas);
+  var pixels = filters._toPixels(img.elt);
   var tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = img.canvas.width;
-  tmpCanvas.height = img.canvas.height;
+  tmpCanvas.width = img.elt.width;
+  tmpCanvas.height = img.elt.height;
   var tmpCtx = tmpCanvas.getContext('2d');
-  var id = tmpCtx.createImageData(img.canvas.width, img.canvas.height);
+  var id = tmpCtx.createImageData(img.elt.width, img.elt.height);
   var newPixels = id.data;
   for (var i = 0; i < pixels.length; i += 4) {
     var r = pixels[i];
@@ -216,9 +218,9 @@ p5.Renderer2D._copyHelper = function(
   dh
 ) {
   srcImage.loadPixels();
-  var s = srcImage.canvas.width / srcImage.width;
+  var s = srcImage.elt.width / srcImage.width;
   dstImage.drawingContext.drawImage(
-    srcImage.canvas,
+    srcImage.elt,
     s * sx,
     s * sy,
     s * sw,
@@ -277,9 +279,9 @@ p5.Renderer2D.prototype.get = function(x, y, w, h) {
     var sh = dh * pd;
 
     var region = new p5.Image(dw, dh);
-    region.canvas
+    region.elt
       .getContext('2d')
-      .drawImage(this.canvas, sx, sy, sw, sh, 0, 0, dw, dh);
+      .drawImage(this.elt, sx, sy, sw, sh, 0, 0, dw, dh);
 
     return region;
   }
@@ -306,7 +308,7 @@ p5.Renderer2D.prototype.set = function(x, y, imgOrCol) {
     this.drawingContext.save();
     this.drawingContext.setTransform(1, 0, 0, 1, 0, 0);
     this.drawingContext.scale(ctx._pixelDensity, ctx._pixelDensity);
-    this.drawingContext.drawImage(imgOrCol.canvas, x, y);
+    this.drawingContext.drawImage(imgOrCol.elt, x, y);
     this.loadPixels.call(ctx);
     this.drawingContext.restore();
   } else {
@@ -483,14 +485,10 @@ p5.Renderer2D.prototype.arc = function(x, y, w, h, start, stop, mode) {
   return this;
 };
 
-p5.Renderer2D.prototype.ellipse = function(args) {
+p5.Renderer2D.prototype.ellipse = function(x, y, w, h) {
   var ctx = this.drawingContext;
   var doFill = this._doFill,
     doStroke = this._doStroke;
-  var x = args[0],
-    y = args[1],
-    w = args[2],
-    h = args[3];
   if (doFill && !doStroke) {
     if (this._getFill() === styleEmpty) {
       return this;

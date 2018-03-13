@@ -24,6 +24,7 @@ var constants = require('./constants');
  * @param {p5} [pInst]          pointer to p5 instance
  */
 p5.Graphics = function(w, h, renderer, pInst) {
+  /*
   var r = renderer || constants.P2D;
 
   this.canvas = document.createElement('canvas');
@@ -43,26 +44,38 @@ p5.Graphics = function(w, h, renderer, pInst) {
     }
   }
 
+  */
   p5.prototype._initializeInstanceVariables.apply(this);
+
+  this._styles = [];
   this.width = w;
   this.height = h;
   this._pixelDensity = pInst._pixelDensity;
 
-  if (r === constants.WEBGL) {
-    this._renderer = new p5.RendererGL(this.canvas, this, false);
-  } else {
-    this._renderer = new p5.Renderer2D(this.canvas, this, false);
+  switch (renderer) {
+    case constants.WEBGL:
+      p5.RendererGL.call(this, pInst, false);
+      break;
+    case constants.SVG:
+      p5.RendererSVG.call(this, pInst, false);
+      break;
+    default:
+      p5.RendererSVG.call(this, pInst, false);
+      //p5.Renderer2D.call(this, pInst, false);
+      break;
   }
   pInst._elements.push(this);
 
-  this._renderer.resize(w, h);
-  this._renderer._applyDefaults();
+  this._renderer = this; // weird
+
+  this.resize(w, h);
+  this._applyDefaults();
 
   this.name = 'p5.Graphics'; // for friendly debugger system
   return this;
 };
 
-p5.Graphics.prototype = Object.create(p5.Element.prototype);
+p5.Graphics.prototype = Object.create(p5.Renderer.prototype);
 
 /**
  * @method remove

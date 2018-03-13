@@ -70,8 +70,8 @@ p5.prototype.loadImage = function(path, successCallback, failureCallback) {
 
   var self = this;
   img.onload = function() {
-    pImg.width = pImg.canvas.width = img.width;
-    pImg.height = pImg.canvas.height = img.height;
+    pImg.width = pImg.elt.width = img.width;
+    pImg.height = pImg.elt.height = img.height;
 
     // Draw the image into the backing canvas of the p5.Image
     pImg.drawingContext.drawImage(img, 0, 0);
@@ -247,7 +247,7 @@ p5.prototype.image = function(
   var defW = img.width;
   var defH = img.height;
 
-  if (img.elt && img.elt.videoWidth && !img.canvas) {
+  if (img.elt && img.elt.videoWidth && !img.elt) {
     // video no canvas
     defW = img.elt.videoWidth;
     defH = img.elt.videoHeight;
@@ -270,7 +270,7 @@ p5.prototype.image = function(
   // and https://github.com/processing/p5.js/issues/1673
   var pd = 1;
 
-  if (img.elt && !img.canvas && img.elt.style.width) {
+  if (img.elt && !img.elt && img.elt.style.width) {
     //if img is video and img.elt.size() has been used and
     //no width passed to image()
     if (img.elt.videoWidth && !dWidth) {
@@ -427,15 +427,15 @@ p5.prototype.noTint = function() {
  *
  */
 p5.prototype._getTintedImageCanvas = function(img) {
-  if (!img.canvas) {
+  if (!img.elt) {
     return img;
   }
-  var pixels = Filters._toPixels(img.canvas);
+  var pixels = Filters._toPixels(img.elt);
   var tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = img.canvas.width;
-  tmpCanvas.height = img.canvas.height;
+  tmpCanvas.width = img.elt.width;
+  tmpCanvas.height = img.elt.height;
   var tmpCtx = tmpCanvas.getContext('2d');
-  var id = tmpCtx.createImageData(img.canvas.width, img.canvas.height);
+  var id = tmpCtx.createImageData(img.elt.width, img.elt.height);
   var newPixels = id.data;
 
   for (var i = 0; i < pixels.length; i += 4) {

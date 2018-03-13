@@ -243,7 +243,7 @@ p5.prototype.beginContour = function() {
  *
  */
 p5.prototype.beginShape = function(kind) {
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.beginShape.apply(this._renderer, arguments);
   } else {
     if (
@@ -469,7 +469,7 @@ p5.prototype.endContour = function() {
  *
  */
 p5.prototype.endShape = function(mode) {
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.endShape(
       mode,
       isCurve,
@@ -633,7 +633,7 @@ p5.prototype.quadraticVertex = function(cx, cy, x3, y3) {
  * @param  {Number} [v] the vertex's texture v-coordinate
  */
 p5.prototype.vertex = function(x, y, moveTo, u, v) {
-  if (this._renderer.isP3D) {
+  if (this._renderer._type === constants.WEBGL) {
     this._renderer.vertex.apply(this._renderer, arguments);
   } else {
     var vert = [];

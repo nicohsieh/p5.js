@@ -58,7 +58,7 @@ p5.Texture.prototype._getTextureDataFromSource = function() {
   var textureData;
   if (this.isSrcP5Image) {
     // param is a p5.Image
-    textureData = this.src.canvas;
+    textureData = this.src.elt;
   } else if (
     this.isSrcMediaElement ||
     this.isSrcP5Graphics ||

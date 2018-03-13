@@ -141,10 +141,9 @@ p5.Image = function(width, height) {
    *
    */
   this.height = height;
-  this.canvas = document.createElement('canvas');
-  this.canvas.width = this.width;
-  this.canvas.height = this.height;
-  this.drawingContext = this.canvas.getContext('2d');
+  this.elt.width = this.width;
+  this.elt.height = this.height;
+  this.drawingContext = this.elt.getContext('2d');
   this._pixelDensity = 1;
   //used for webgl texturing only
   this._modified = false;
@@ -218,6 +217,8 @@ p5.Image = function(width, height) {
   this.pixels = [];
   this.name = 'p5.Image'; // for friendly debugger system
 };
+
+p5.Image.prototype = Object.create(p5.Element.prototype);
 
 /**
  * Helper fxn for sharing pixel methods
@@ -430,7 +431,7 @@ p5.Image.prototype.resize = function(width, height) {
   // and then copy back.
   //
   // There is a faster approach that involves just one copy and swapping the
-  // this.canvas reference. We could switch to that approach if (as i think
+  // this.elt reference. We could switch to that approach if (as i think
   // is the case) there an expectation that the user would not hold a
   // reference to the backing canvas of a p5.Image. But since we do not
   // enforce that at the moment, I am leaving in the slower, but safer
@@ -438,12 +439,12 @@ p5.Image.prototype.resize = function(width, height) {
 
   // auto-resize
   if (width === 0 && height === 0) {
-    width = this.canvas.width;
-    height = this.canvas.height;
+    width = this.elt.width;
+    height = this.elt.height;
   } else if (width === 0) {
-    width = this.canvas.width * height / this.canvas.height;
+    width = this.elt.width * height / this.elt.height;
   } else if (height === 0) {
-    height = this.canvas.height * width / this.canvas.width;
+    height = this.elt.height * width / this.elt.width;
   }
 
   width = Math.floor(width);
@@ -454,14 +455,14 @@ p5.Image.prototype.resize = function(width, height) {
   tempCanvas.height = height;
   // prettier-ignore
   tempCanvas.getContext('2d').drawImage(
-    this.canvas,
-    0, 0, this.canvas.width, this.canvas.height,
+    this.elt,
+    0, 0, this.elt.width, this.elt.height,
     0, 0, tempCanvas.width, tempCanvas.height
   );
 
   // Resize the original canvas, which will clear its contents
-  this.canvas.width = this.width = width;
-  this.canvas.height = this.height = height;
+  this.elt.width = this.width = width;
+  this.elt.height = this.height = height;
 
   //Copy the image back
 
@@ -654,7 +655,7 @@ p5.Image.prototype.mask = function(p5Image) {
  *
  */
 p5.Image.prototype.filter = function(operation, value) {
-  Filters.apply(this.canvas, Filters[operation.toLowerCase()], value);
+  Filters.apply(this.elt, Filters[operation.toLowerCase()], value);
   this.setModified(true);
 };
 
@@ -812,7 +813,7 @@ p5.Image.prototype.isModified = function() {
  *
  */
 p5.Image.prototype.save = function(filename, extension) {
-  p5.prototype.saveCanvas(this.canvas, filename, extension);
+  p5.prototype.saveCanvas(this.elt, filename, extension);
 };
 
 module.exports = p5.Image;

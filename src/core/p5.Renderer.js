@@ -21,21 +21,30 @@ var constants = require('../core/constants');
  * @param {p5} [pInst] pointer to p5 instance
  * @param {Boolean} [isMainCanvas] whether we're using it as main canvas
  */
-p5.Renderer = function(elt, pInst, isMainCanvas) {
+p5.Renderer = function(elt, pInst, type, isMainCanvas) {
+  elt.id = p5.Renderer._getFreeCanvasId();
   p5.Element.call(this, elt, pInst);
+
+  this._type = type;
   this.name = 'p5.Renderer'; // for friendly debugger system
-  this.canvas = elt;
-  this._pInst = pInst;
+
+  // set to invisible if still in setup (to prevent flashing with manipulate)
+  if (!pInst._setupDone) {
+    elt.style.visibility = 'hidden';
+  }
+
+  (pInst._userNode || document.body).appendChild(elt);
+
   if (isMainCanvas) {
     this._isMainCanvas = true;
     // for pixel method sharing with pimage
-    this._pInst._setProperty('_curElement', this);
-    this._pInst._setProperty('canvas', this.canvas);
-    this._pInst._setProperty('width', this.width);
-    this._pInst._setProperty('height', this.height);
+    pInst._setProperty('_curElement', this);
+    pInst._setProperty('canvas', elt);
+    pInst._setProperty('width', this.width);
+    pInst._setProperty('height', this.height);
   } else {
     // hide if offscreen buffer by default
-    this.canvas.style.display = 'none';
+    this.elt.style.display = 'none';
     this._styles = []; // non-main elt styles stored in p5.Renderer
   }
 
@@ -111,14 +120,24 @@ p5.Renderer.prototype.pop = function(style) {
   }
 };
 
+p5.Renderer._remove = function() {};
+
+p5.Renderer._getFreeCanvasId = function() {
+  var i = 0;
+  while (document.getElementById('defaultCanvas' + i)) {
+    i++;
+  }
+  return 'defaultCanvas' + i;
+};
+
 /**
  * Resize our canvas element.
  */
 p5.Renderer.prototype.resize = function(w, h) {
   this.width = w;
   this.height = h;
-  this.elt.width = w * this._pInst._pixelDensity;
-  this.elt.height = h * this._pInst._pixelDensity;
+  this.elt.setAttribute('width', w * this._pInst._pixelDensity);
+  this.elt.setAttribute('height', h * this._pInst._pixelDensity);
   this.elt.style.width = w + 'px';
   this.elt.style.height = h + 'px';
   if (this._isMainCanvas) {
