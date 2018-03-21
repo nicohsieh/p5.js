@@ -27,6 +27,29 @@ require('./p5.Texture');
  * source code
  * @return {p5.Shader} a shader object created from the provided
  * vertex and fragment shader files.
+ *
+ * @example
+ * <div modernizr='webgl'><code>
+ * var swirl;
+ * function preload() {
+ *   swirl = loadShader('assets/swirl.vert', 'assets/swirl.frag');
+ * }
+ * function setup() {
+ *   createCanvas(100, 100, WEBGL);
+ *   shader(swirl);
+ * }
+ * function draw() {
+ *   background(200);
+ *   var time = millis();
+ *   swirl.setUniform('time', time / 1000);
+ *   rotateX(time / 5234);
+ *   rotateZ(time / 3217);
+ *   box(60);
+ * }
+ * </code></div>
+ *
+ * @alt
+ * a spinning cube with an animated swirly texture
  */
 p5.prototype.loadShader = function(vertFilename, fragFilename) {
   var loadedShader = new p5.Shader();
@@ -38,15 +61,15 @@ p5.prototype.loadShader = function(vertFilename, fragFilename) {
   this.loadStrings(fragFilename, function(result) {
     loadedShader._fragSrc = result.join('\n');
     loadedFrag = true;
-    if (!loadedVert) {
-      self._incrementPreload();
+    if (loadedVert) {
+      self._decrementPreload();
     }
   });
   this.loadStrings(vertFilename, function(result) {
     loadedShader._vertSrc = result.join('\n');
     loadedVert = true;
-    if (!loadedFrag) {
-      self._incrementPreload();
+    if (loadedFrag) {
+      self._decrementPreload();
     }
   });
 
