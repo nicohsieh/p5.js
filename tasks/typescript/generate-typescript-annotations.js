@@ -485,6 +485,8 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
     emit.dedent();
     emit('}\n');
 
+    emitConstants();
+
     emit.close();
 
     emit = createEmitter(globalFilename);
@@ -492,8 +494,6 @@ function mod(yuidocs, localFileame, globalFilename, sourcePath) {
     emit('///<reference path="p5.d.ts" />\n');
 
     p5Aliases.forEach(generateP5Properties);
-
-    emitConstants();
 
     emit.close();
 
