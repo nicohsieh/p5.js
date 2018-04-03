@@ -96,7 +96,7 @@ p5.prototype.bezier = function() {
  * @param {Number} detail resolution of the curves
  * @chainable
  * @example
- * <div>
+ * <div modernizr='webgl'>
  * <code>
  * function setup() {
  *   createCanvas(100, 100, WEBGL);
@@ -355,7 +355,7 @@ p5.prototype.curve = function() {
  * @param {Number} resolution of the curves
  * @chainable
  * @example
- * <div>
+ * <div modernizr='webgl'>
  * <code>
  * function setup() {
  *   createCanvas(100, 100, WEBGL);
