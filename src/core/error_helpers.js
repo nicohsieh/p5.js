@@ -9,7 +9,7 @@ var p5 = require('./core');
 var constants = require('./constants');
 
 if (typeof IS_MINIFIED !== 'undefined') {
-  p5._friendlyFileLoadError = function() { };
+  p5._friendlyFileLoadError = function() {};
 } else {
   var doFriendlyWelcome = false; // TEMP until we get it all working LM
   // for parameter validation
@@ -52,13 +52,13 @@ if (typeof IS_MINIFIED !== 'undefined') {
     //var welcomeTextColor = 'white';
     console.log(
       '    _ \n' +
-      ' /\\| |/\\ \n' +
-      " \\ ` ' /  \n" +
-      ' / , . \\  \n' +
-      ' \\/|_|\\/ ' +
-      '\n\n> p5.js says: Welcome! ' +
-      'This is your friendly debugger. ' +
-      'To turn me off switch to using “p5.min.js”.'
+        ' /\\| |/\\ \n' +
+        " \\ ` ' /  \n" +
+        ' / , . \\  \n' +
+        ' \\/|_|\\/ ' +
+        '\n\n> p5.js says: Welcome! ' +
+        'This is your friendly debugger. ' +
+        'To turn me off switch to using “p5.min.js”.'
     );
   };
 
@@ -92,16 +92,16 @@ if (typeof IS_MINIFIED !== 'undefined') {
     if (func.substring(0, 4) === 'load') {
       console.log(
         '> p5.js says: ' +
-        message +
-        '[https://github.com/processing/p5.js/wiki/Local-server]'
+          message +
+          '[https://github.com/processing/p5.js/wiki/Local-server]'
       );
     } else {
       console.log(
         '> p5.js says: ' +
-        message +
-        ' [http://p5js.org/reference/#p5/' +
-        func +
-        ']'
+          message +
+          ' [http://p5js.org/reference/#p5/' +
+          func +
+          ']'
       );
     }
   };
@@ -381,41 +381,6 @@ if (typeof IS_MINIFIED !== 'undefined') {
     return score;
   };
 
-  // generate a score (higher is worse) for applying these args to
-  // this overload.
-  var scoreOverload = function(args, argCount, overload, minScore) {
-    var score = 0;
-    var formats = overload.formats;
-
-    // check for too few/many args
-    // the score is double number of extra/missing args
-    if (argCount < overload.minParams) {
-      score = (overload.minParams - argCount) * 2;
-    } else if (argCount > formats.length) {
-      score = (argCount - formats.length) * 2;
-    }
-
-    // loop through the formats, adding up the error score for each arg.
-    // quit early if the score gets higher than the previous best overload.
-    for (var p = 0; score <= minScore && p < formats.length; p++) {
-      var arg = args[p];
-      var format = formats[p];
-      var argType = typeof arg;
-      if ('undefined' === argType) {
-        // handle non-optional and non-trailing undefined args
-        if (
-          !format.optional ||
-          (p < overload.minParams ? true : p < argCount)
-        ) {
-          score += 1;
-        }
-      } else if (!testParamTypes(arg, format.types)) {
-        score += 1;
-      }
-    }
-    return score;
-  };
-
   // gets a list of errors for this overload
   var getOverloadErrors = function(args, argCount, overload) {
     var formats = overload.formats;
@@ -553,7 +518,7 @@ if (typeof IS_MINIFIED !== 'undefined') {
         if (location) {
           message += ' at ' + location;
         }
-      } catch (err) { }
+      } catch (err) {}
 
       report(message + '.', func, ERR_PARAMS);
     }
@@ -827,13 +792,13 @@ var helpForMisusedAtTopLevelCode = function(e, log) {
     if (e.message && e.message.match('\\W?' + symbol.name + '\\W') !== null) {
       log(
         "Did you just try to use p5.js's " +
-        symbol.name +
-        (symbol.type === 'function' ? '() ' : ' ') +
-        symbol.type +
-        '? If so, you may want to ' +
-        "move it into your sketch's setup() function.\n\n" +
-        'For more details, see: ' +
-        FAQ_URL
+          symbol.name +
+          (symbol.type === 'function' ? '() ' : ' ') +
+          symbol.type +
+          '? If so, you may want to ' +
+          "move it into your sketch's setup() function.\n\n" +
+          'For more details, see: ' +
+          FAQ_URL
       );
       return true;
     }
