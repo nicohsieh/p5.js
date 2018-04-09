@@ -368,12 +368,16 @@ suite('Files', function() {
     test('should call error callback function if not found', function() {
       var errorCalled = false;
       return new Promise(function(resolve, reject) {
+        console.log('test loadBytes 1');
         myp5.loadBytes('notfound.jpg', resolve, reject);
+        console.log('test loadBytes 2');
       })
         .catch(function() {
+          console.log('test catch');
           errorCalled = true;
         })
         .finally(function() {
+          console.log('test finally');
           assert.isTrue(errorCalled);
         });
     });

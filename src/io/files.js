@@ -1046,6 +1046,9 @@ p5.prototype.httpDo = function() {
 
   (type === 'jsonp' ? fetchJsonp(path, jsonpOptions) : fetch(request))
     .then(function(res) {
+      console.log('then');
+      console.log(res);
+
       if (!res.ok) throw res;
 
       switch (type) {
@@ -1068,8 +1071,11 @@ p5.prototype.httpDo = function() {
     .then(callback || defaultCallback)
     .catch(errorCallback || defaultErrorCallback);
 
-  function defaultCallback() {}
+  function defaultCallback() {
+    console.log('defaultCallback');
+  }
   function defaultErrorCallback(err) {
+    console.log('defaultErrorCallback');
     throw err;
   }
 };
